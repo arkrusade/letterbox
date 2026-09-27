@@ -205,13 +205,18 @@ h1 em, h2 em { color: var(--accent); font-weight: 500; }
 .prompt-list { display: grid; gap: 10px; }
 .prompt-card {
   display: grid;
+  width: 100%;
   grid-template-columns: 39px 1fr auto;
   align-items: center;
   gap: 14px;
   padding: 14px 17px;
   border: 1px solid var(--line);
   border-radius: 13px;
+  color: inherit;
   background: rgb(255 253 249 / 72%);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   transition: border-color .2s, transform .2s;
 }
 .prompt-card:hover { transform: translateY(-1px); border-color: #d7c8b7; }

@@ -1,0 +1,116 @@
+SOMEWHERE — FEATURE LIST AND MVP GAPS
+======================================
+
+Purpose
+-------
+A mobile-first app for keeping in touch with friends around the world through
+shared reflection questions and a newsletter-style collection of the group's
+answers.
+
+CURRENT PROTOTYPE
+-----------------
+Working in the front-end prototype:
+- Three visual themes plus the original style; themes share the same content.
+- Style gallery with synced scrolling, navigation, and question selection.
+- Sample group, weekly questions, sample text answers, and newsletter view.
+- Text response composer with a 600-character limit.
+- Browser-local response saving for the current session.
+- Whole question cards open the matching question in the newsletter.
+
+Prototype limitations:
+- Group members, questions, answers, and profile details are sample data.
+- Responses are stored only in the current browser; there is no server or
+  cross-device/group synchronization.
+- Profile button and member cards do not yet open profile screens.
+- Group switcher does not yet switch groups.
+- Themes are visual explorations; there is no theme editor or saved group style.
+
+PRIORITY 0 — MAKE THE PROTOTYPE FEEL COMPLETE
+---------------------------------------------
+[ ] Add a usable profile screen for the current user.
+[ ] Make member cards open a member profile (name, location/time zone, and
+    responses in the current and past newsletters).
+[ ] Make group switcher open group details and a member list.
+[ ] Add clear loading, empty, error, and success states to the main screens.
+[ ] Keep question selection and scroll behavior working across the style gallery.
+
+PRIORITY 1 — CORE GROUP MVP
+---------------------------
+[ ] Add a backend and database for accounts, groups, memberships, sessions,
+    questions, text answers, and published newsletters.
+[ ] Add sign-up/sign-in and profile editing.
+[ ] Create groups and invite/join friends with a shareable invite link or code.
+[ ] Store phone numbers for invitations. Ask permission and explain the use.
+[ ] Allow importing contacts only after explicit user permission; let the user
+    select who to invite. Do not upload the address book by default.
+[ ] Let a group member manually add one question per newsletter session.
+[ ] Enforce the one-question-per-person rule on the server, not only in the UI.
+[ ] Let the group review/collect its questions and give everyone the same set.
+[ ] Let members submit text answers to the shared questions.
+[ ] Publish a newsletter-style view containing each question and the group's
+    answers, with author and attribution.
+[ ] Add private-by-default group access and controls for leaving a group,
+    removing a member, and deleting an account and its data.
+
+PRIORITY 2 — SESSION CADENCE AND ARCHIVE
+---------------------------------------
+[ ] Make session length configurable per group in the backend.
+[ ] Start with one newsletter every two weeks (a 14-day session).
+[ ] Decide the group's time zone and the exact session start, close, and
+    newsletter publication time; handle members in different time zones.
+[ ] Define what happens when a member has not submitted an answer at close.
+[ ] Support draft, open, closing, and published session states.
+[ ] Show previous questions, answers, and newsletters in a browsable archive.
+[ ] Allow opening an archived newsletter without changing current answers.
+[ ] Decide whether published newsletters can be edited or retracted.
+
+PRIORITY 3 — KEEP IN TOUCH
+--------------------------
+[ ] Add opt-in reminders for an upcoming session, unanswered questions, and
+    newsletter publication.
+[ ] Support notification preferences and quiet hours.
+[ ] Provide a useful invite/re-entry experience for friends who have not joined.
+[ ] Make member locations and local time zones visible where useful, with
+    profile privacy controls.
+
+PRIORITY 4 — IMAGES AND PRESENTATION
+------------------------------------
+[ ] Support image answers and questions that explicitly ask for an image.
+[ ] Add image selection/capture, upload, storage, compression, and display.
+[ ] Set image size/type limits and provide upload progress and failure states.
+[ ] Add image privacy, deletion, and retention rules.
+[ ] Keep content separate from newsletter presentation so layouts/themes can
+    change without changing saved questions or answers.
+[ ] Let a group choose a newsletter theme; preserve a readable default.
+[ ] Test text-only and image answers across all themes and small screens.
+
+FOUNDATION / RELEASE CHECKLIST
+------------------------------
+[ ] Choose and configure production hosting, database, file storage, and backups.
+[ ] Add automated tests for session rules, permissions, publishing, archives,
+    contact consent, and response privacy.
+[ ] Add accessibility checks for keyboard use, screen readers, contrast, and
+    reduced motion.
+[ ] Add data export/deletion, privacy policy, and terms before public launch.
+[ ] Add monitoring and a way to report problems or inappropriate content.
+
+OPEN PRODUCT DECISIONS
+---------------------
+- Who can start a group, invite members, edit group settings, or remove members?
+- Can members add questions after the session starts? Can the group edit or vote
+  on submitted questions?
+- Are answers visible as soon as they are submitted, or only after publication?
+- Are unanswered questions omitted, shown as blank, or followed up privately?
+- What is the exact biweekly schedule and which group time zone controls it?
+- Should members be able to edit or delete a response after the newsletter is
+  published?
+- How long are uploaded images and archived newsletters retained?
+- Should theme selection belong to each member or to the whole group?
+
+NEXT SUGGESTED BUILD
+--------------------
+Implement the backend data model and group/session flow first. Use a 14-day
+session as the initial default, enforce one member-submitted question per person
+per session, publish shared questions and text answers, then add archive
+browsing. This establishes the shared product behavior before adding contacts,
+notifications, and image uploads.

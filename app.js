@@ -148,16 +148,16 @@ function renderHome() {
       const responseCount = allResponses(question).length;
       const hasAnswered = Boolean(storedResponses[question.id]);
       return `
-        <article class="prompt-card">
+        <button class="prompt-card" type="button" data-question-id="${question.id}" aria-label="Open notes for question ${index + 1}">
           <span class="prompt-number">0${index + 1}</span>
           <div class="prompt-copy">
             <h3>${question.text}</h3>
             <p>${responseCount} notes from your group</p>
           </div>
-          <button class="prompt-answer ${hasAnswered ? "" : "prompt-answer--pending"}" type="button" data-question-id="${question.id}" aria-label="Read notes for question ${index + 1}">
+          <span class="prompt-answer ${hasAnswered ? "" : "prompt-answer--pending"}">
             ${hasAnswered ? "Answered" : "Your turn"}<span class="prompt-arrow" aria-hidden="true">→</span>
-          </button>
-        </article>`;
+          </span>
+        </button>`;
     })
     .join("");
   document.querySelector("#people-grid").innerHTML = group.friends
