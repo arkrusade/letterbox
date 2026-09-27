@@ -48,7 +48,7 @@
             </div>
             <div class="sun-stamp" aria-hidden="true">
               <span>✳</span>
-              <small>week<br />no. 24</small>
+              <small>week<br />no. <span id="week-number"></span></small>
             </div>
           </div>
 
@@ -58,7 +58,7 @@
                 <p class="eyebrow eyebrow--muted">THIS WEEK'S LETTER</p>
                 <h2 id="week-title">The things we keep</h2>
               </div>
-              <span class="date-pill">JUN 10 — 16</span>
+              <span class="date-pill" id="week-date-label"></span>
             </div>
             <p class="week-intro">Three little questions. One shared week. A chance to catch up on the parts that matter.</p>
             <div class="response-progress">
@@ -109,7 +109,7 @@
         <section class="view" id="letter-view" aria-labelledby="letter-title" hidden>
           <div class="letter-heading">
             <button class="back-link" type="button" data-show-home><span aria-hidden="true">←</span> YOUR GROUP</button>
-            <p class="eyebrow eyebrow--muted">THE FARRAWAY CLUB · WEEK NO. 24</p>
+            <p class="eyebrow eyebrow--muted">THE FARRAWAY CLUB · WEEK NO. <span id="letter-week-number"></span></p>
             <h1 id="letter-title">The things<br /><em>we keep.</em></h1>
             <p class="letter-deck">A little collection of the week, from all the places we call home.</p>
             <div class="letter-byline">
@@ -121,7 +121,7 @@
               </div>
               <span>4 friends · <span id="letter-response-count">9</span> little notes</span>
               <span class="byline-divider">·</span>
-              <span>June 16, 2024</span>
+              <span id="letter-date"></span>
             </div>
           </div>
           <div class="letter-body" id="letter-body"></div>

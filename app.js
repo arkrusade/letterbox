@@ -1,3 +1,38 @@
+function getCurrentWeek() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+
+  const thursday = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()));
+  thursday.setUTCDate(thursday.getUTCDate() - ((thursday.getUTCDay() + 6) % 7) + 3);
+  const firstThursday = new Date(Date.UTC(thursday.getUTCFullYear(), 0, 4));
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - ((firstThursday.getUTCDay() + 6) % 7) + 3);
+  const weekNumber = 1 + Math.round((thursday - firstThursday) / 604800000);
+  const monthLabel = (date) =>
+    new Intl.DateTimeFormat(undefined, { month: "short" }).format(date).toUpperCase();
+  const dateLabel =
+    start.getMonth() === end.getMonth()
+      ? `${monthLabel(start)} ${start.getDate()} — ${end.getDate()}`
+      : `${monthLabel(start)} ${start.getDate()} — ${monthLabel(end)} ${end.getDate()}`;
+  const dateKey = [start.getFullYear(), start.getMonth() + 1, start.getDate()]
+    .map((part, index) => (index === 0 ? String(part) : String(part).padStart(2, "0")))
+    .join("-");
+
+  return {
+    id: `week-${dateKey}`,
+    number: String(weekNumber).padStart(2, "0"),
+    dateLabel,
+    date: new Intl.DateTimeFormat(undefined, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(end),
+  };
+}
+
+const currentWeek = getCurrentWeek();
 const group = {
   name: "The Faraway Club",
   friends: [
@@ -7,11 +42,8 @@ const group = {
     { id: "you", name: "You", initial: "Y", city: "Portland, OR", color: "green", checkedIn: false, isYou: true },
   ],
   issue: {
-    id: "week-24",
-    number: "24",
+    ...currentWeek,
     title: "The things we keep",
-    date: "June 16, 2024",
-    dateLabel: "JUN 10 — 16",
     questions: [
       {
         id: "small-joy",
@@ -79,6 +111,9 @@ function avatarMarkup(person, extraClass = "") {
 }
 
 function renderHome() {
+  document.querySelector("#week-number").textContent = group.issue.number;
+  document.querySelector("#letter-week-number").textContent = group.issue.number;
+  document.querySelector("#week-date-label").textContent = group.issue.dateLabel;
   const checkedIn = group.friends.filter((friend) =>
     group.issue.questions.some((question) =>
       allResponses(question).some((response) => response.personId === friend.id),
@@ -130,6 +165,7 @@ function renderHome() {
 }
 
 function renderLetter() {
+  document.querySelector("#letter-date").textContent = group.issue.date;
   const totalResponses = group.issue.questions.reduce((sum, question) => sum + allResponses(question).length, 0);
   document.querySelector("#letter-response-count").textContent = totalResponses;
   document.querySelector("#letter-body").innerHTML = group.issue.questions
