@@ -230,9 +230,11 @@ h1 em, h2 em { color: var(--accent); font-weight: 500; }
 .prompt-copy { min-width: 0; }
 .prompt-copy h3 { margin: 0 0 5px; font: 500 15px/1.4 var(--serif); }
 .prompt-copy p { margin: 0; color: var(--muted); font-size: 9px; }
-.prompt-card .prompt-answer { white-space: nowrap; color: #7d9676; font-size: 9px; font-weight: 700; }
+.prompt-card .prompt-answer { padding: 0; border: 0; background: transparent; white-space: nowrap; color: #7d9676; font-size: 9px; font-weight: 700; cursor: pointer; }
 .prompt-card .prompt-answer--pending { color: var(--accent); }
 .prompt-card .prompt-arrow { margin-left: 5px; color: var(--quiet); font-size: 15px; }
+.question-jump { padding: 0; border: 0; color: inherit; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.question-jump:hover { color: var(--accent); }
 
 .nudge-card {
   position: relative;
@@ -482,7 +484,7 @@ h1 em, h2 em { color: var(--accent); font-weight: 500; }
   .group-switcher .group-avatars { display: none; }
   .group-name { max-width: 90px; }
   .prompt-card { grid-template-columns: 31px 1fr; }
-  .prompt-card .prompt-answer { grid-column: 2; margin-top: -4px; }
+  .prompt-card .prompt-answer { grid-column: 2; justify-self: start; margin-top: -4px; }
   .prompt-card .prompt-arrow { display: none; }
   .date-pill { letter-spacing: .04em; }
   h1 { font-size: 35px; }

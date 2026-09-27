@@ -154,9 +154,9 @@ function renderHome() {
             <h3>${question.text}</h3>
             <p>${responseCount} notes from your group</p>
           </div>
-          <span class="prompt-answer ${hasAnswered ? "" : "prompt-answer--pending"}">
+          <button class="prompt-answer ${hasAnswered ? "" : "prompt-answer--pending"}" type="button" data-question-id="${question.id}" aria-label="Read notes for question ${index + 1}">
             ${hasAnswered ? "Answered" : "Your turn"}<span class="prompt-arrow" aria-hidden="true">→</span>
-          </span>
+          </button>
         </article>`;
     })
     .join("");
@@ -188,7 +188,7 @@ function renderLetter() {
         <section class="letter-question" aria-labelledby="question-${question.id}">
           <div class="letter-question-header">
             <span class="prompt-number">0${index + 1}</span>
-            <h2 id="question-${question.id}">${question.text}</h2>
+            <h2 id="question-${question.id}"><button class="question-jump" type="button" data-question-id="${question.id}">${question.text}</button></h2>
           </div>
           <div class="response-grid">
             ${responses
@@ -224,6 +224,14 @@ const questionSelect = document.querySelector("#question-select");
 const answerInput = document.querySelector("#answer-input");
 const toast = document.querySelector("#toast");
 let toastTimeout;
+let activeView = "home";
+let suppressScrollSync = false;
+
+function sendGalleryMessage(message) {
+  if (window.parent !== window) {
+    window.parent.postMessage({ ...message, sender: "somewhere-preview" }, window.location.origin);
+  }
+}
 
 questionSelect.innerHTML = group.issue.questions
   .map((question, index) => `<option value="${question.id}">0${index + 1} · ${question.text}</option>`)
@@ -234,8 +242,9 @@ function openComposer() {
   answerInput.focus();
 }
 
-function showView(viewName) {
+function showView(viewName, questionId = null, broadcast = true) {
   const home = viewName === "home";
+  activeView = home ? "home" : "letter";
   document.querySelector("#home-view").hidden = !home;
   document.querySelector("#letter-view").hidden = home;
   document.querySelectorAll(".nav-item[data-nav]").forEach((button) => {
@@ -244,7 +253,18 @@ function showView(viewName) {
     if (active) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   });
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!broadcast) suppressScrollSync = true;
+  if (questionId && !home) {
+    requestAnimationFrame(() => {
+      document.querySelector(`#question-${CSS.escape(questionId)}`)?.scrollIntoView({
+        behavior: broadcast ? "smooth" : "auto",
+        block: "start",
+      });
+    });
+  } else {
+    window.scrollTo({ top: 0, behavior: broadcast ? "smooth" : "auto" });
+  }
+  if (broadcast) sendGalleryMessage({ type: "navigation", view: activeView, questionId });
 }
 
 function announce(message) {
@@ -258,6 +278,10 @@ document.querySelectorAll("[data-open-compose]").forEach((button) => button.addE
 document.querySelectorAll("[data-open-letter]").forEach((button) => button.addEventListener("click", () => showView("letter")));
 document.querySelectorAll("[data-show-home]").forEach((button) => button.addEventListener("click", () => showView("home")));
 document.querySelectorAll("[data-nav]").forEach((button) => button.addEventListener("click", () => showView(button.dataset.nav)));
+document.querySelector("#main-content").addEventListener("click", (event) => {
+  const questionControl = event.target.closest("[data-question-id]");
+  if (questionControl) showView("letter", questionControl.dataset.questionId);
+});
 document.querySelector("[data-close-compose]").addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", (event) => {
   if (event.target === dialog) dialog.close();
@@ -288,5 +312,44 @@ form.addEventListener("submit", (event) => {
   announce("Your note is tucked into the letter.");
 });
 
+window.addEventListener("scroll", () => {
+  if (suppressScrollSync) {
+    suppressScrollSync = false;
+    return;
+  }
+  if (window.parent === window) return;
+  const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+  sendGalleryMessage({
+    type: "scroll",
+    progress: scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0,
+  });
+});
+
+window.addEventListener("message", (event) => {
+  if (event.origin !== window.location.origin || event.source !== window.parent) return;
+  const message = event.data;
+  if (!message || typeof message !== "object") return;
+
+  if (message.type === "sync-request") {
+    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    sendGalleryMessage({
+      type: "preview-ready",
+      view: activeView,
+      progress: scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0,
+    });
+  } else if (message.type === "sync-navigation" && ["home", "letter"].includes(message.view)) {
+    showView(message.view, typeof message.questionId === "string" ? message.questionId : null, false);
+  } else if (message.type === "sync-scroll" && Number.isFinite(message.progress)) {
+    const progress = Math.max(0, Math.min(1, message.progress));
+    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const target = progress * scrollableHeight;
+    if (Math.abs(target - window.scrollY) > 1) {
+      suppressScrollSync = true;
+      window.scrollTo({ top: target, behavior: "auto" });
+    }
+  }
+});
+
 renderHome();
 renderLetter();
+sendGalleryMessage({ type: "preview-ready", view: activeView, progress: 0 });
