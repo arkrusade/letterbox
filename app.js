@@ -1,3 +1,16 @@
+const availableThemes = ["classic", "coastal", "postcard", "field-notes"];
+const themeDetails = {
+  classic: { name: "Somewhere" },
+  coastal: { name: "The Coastline" },
+  postcard: { name: "Postcards" },
+  "field-notes": { name: "Field Notes" },
+};
+const requestedTheme = new URLSearchParams(window.location.search).get("theme");
+if (availableThemes.includes(requestedTheme)) {
+  document.body.dataset.theme = requestedTheme;
+}
+document.title = `${themeDetails[document.body.dataset.theme]?.name || "Somewhere"} — a little closer`;
+
 function getCurrentWeek() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
