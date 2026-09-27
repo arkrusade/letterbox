@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8f5ef" />
+    <meta
+      name="description"
+      content="A little letter from your people, wherever they are."
+    />
+    <title>somewhere — a little closer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="wordmark" href="#" aria-label="Somewhere home">
+          <span class="wordmark-mark" aria-hidden="true">s.</span>
+          <span>somewhere</span>
+        </a>
+        <button class="group-switcher" type="button" aria-label="Current group: The Faraway Club">
+          <span class="group-avatars" aria-hidden="true">
+            <span class="avatar avatar--peach">M</span>
+            <span class="avatar avatar--blue">J</span>
+            <span class="avatar avatar--lilac">A</span>
+          </span>
+          <span class="group-name">The Faraway Club</span>
+          <span class="chevron" aria-hidden="true">⌄</span>
+        </button>
+        <button class="profile-button" type="button" aria-label="Your profile">
+          <span class="avatar avatar--green">Y</span>
+        </button>
+      </header>
+
+      <main id="main-content">
+        <section class="view view--active" id="home-view" aria-labelledby="home-title">
+          <div class="welcome-row">
+            <div>
+              <p class="eyebrow"><span class="status-dot"></span> YOUR LITTLE CORNER OF THE WORLD</p>
+              <h1 id="home-title">A little closer,<br /><em>even from here.</em></h1>
+            </div>
+            <div class="sun-stamp" aria-hidden="true">
+              <span>✳</span>
+              <small>week<br />no. 24</small>
+            </div>
+          </div>
+
+          <section class="week-card" aria-labelledby="week-title">
+            <div class="week-card-top">
+              <div>
+                <p class="eyebrow eyebrow--muted">THIS WEEK'S LETTER</p>
+                <h2 id="week-title">The things we keep</h2>
+              </div>
+              <span class="date-pill">JUN 10 — 16</span>
+            </div>
+            <p class="week-intro">Three little questions. One shared week. A chance to catch up on the parts that matter.</p>
+            <div class="response-progress">
+              <div class="progress-avatars" id="progress-avatars" aria-label="Friends who have checked in"></div>
+              <div class="progress-copy">
+                <strong id="progress-count">3 of 4 checked in</strong>
+                <span>your people are writing</span>
+              </div>
+              <div class="progress-track" aria-label="75 percent complete"><span></span></div>
+            </div>
+          </section>
+
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow eyebrow--muted">A FEW THINGS TO THINK ABOUT</p>
+              <h2>Questions for your week</h2>
+            </div>
+            <span class="count-label">03 PROMPTS</span>
+          </div>
+
+          <div class="prompt-list" id="prompt-list"></div>
+
+          <section class="nudge-card">
+            <span class="nudge-sparkle" aria-hidden="true">✳</span>
+            <div>
+              <p class="eyebrow">YOUR TURN, WHENEVER</p>
+              <h2>There’s room for your words.</h2>
+              <p>No perfect answer needed. Just a small piece of your week.</p>
+            </div>
+            <button class="button button--dark" type="button" data-open-compose>
+              Write a little
+              <span aria-hidden="true">↗</span>
+            </button>
+          </section>
+
+          <section class="people-section" aria-labelledby="people-title">
+            <div class="section-heading section-heading--compact">
+              <div>
+                <p class="eyebrow eyebrow--muted">YOUR PEOPLE</p>
+                <h2 id="people-title">Around the world</h2>
+              </div>
+              <button class="text-button" type="button" data-open-letter>Read their notes <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="people-grid" id="people-grid"></div>
+          </section>
+        </section>
+
+        <section class="view" id="letter-view" aria-labelledby="letter-title" hidden>
+          <div class="letter-heading">
+            <button class="back-link" type="button" data-show-home><span aria-hidden="true">←</span> YOUR GROUP</button>
+            <p class="eyebrow eyebrow--muted">THE FARRAWAY CLUB · WEEK NO. 24</p>
+            <h1 id="letter-title">The things<br /><em>we keep.</em></h1>
+            <p class="letter-deck">A little collection of the week, from all the places we call home.</p>
+            <div class="letter-byline">
+              <div class="group-avatars group-avatars--large" aria-hidden="true">
+                <span class="avatar avatar--peach">M</span>
+                <span class="avatar avatar--blue">J</span>
+                <span class="avatar avatar--lilac">A</span>
+                <span class="avatar avatar--green">Y</span>
+              </div>
+              <span>4 friends · <span id="letter-response-count">9</span> little notes</span>
+              <span class="byline-divider">·</span>
+              <span>June 16, 2024</span>
+            </div>
+          </div>
+          <div class="letter-body" id="letter-body"></div>
+          <footer class="letter-footer">
+            <span class="footer-flower" aria-hidden="true">✳</span>
+            <p>Distance is just a detail.<br /><em>See you in next week’s letter.</em></p>
+            <button class="button button--outline" type="button" data-open-compose>Leave a note <span aria-hidden="true">↗</span></button>
+          </footer>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button class="nav-item is-active" type="button" data-nav="home" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">⌂</span><span>Home</span>
+        </button>
+        <button class="nav-item" type="button" data-open-compose>
+          <span class="nav-icon nav-icon--write" aria-hidden="true">↗</span><span>Write</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="letter">
+          <span class="nav-icon" aria-hidden="true">▤</span><span>Our letter</span>
+          <span class="nav-dot" aria-label="New"></span>
+        </button>
+      </nav>
+    </div>
+
+    <dialog class="compose-dialog" id="compose-dialog" aria-labelledby="compose-title">
+      <form class="compose-form" id="compose-form">
+        <div class="dialog-top">
+          <span class="eyebrow eyebrow--muted">THIS WEEK'S LETTER</span>
+          <button class="close-button" type="button" data-close-compose aria-label="Close">×</button>
+        </div>
+        <h2 id="compose-title">Your words, <em>your way.</em></h2>
+        <label class="field-label" for="question-select">Choose a question</label>
+        <select id="question-select" name="question" required></select>
+        <label class="field-label" for="answer-input">Your little note</label>
+        <textarea
+          id="answer-input"
+          name="answer"
+          rows="5"
+          maxlength="600"
+          placeholder="A sentence, a story, whatever feels like you…"
+          required
+        ></textarea>
+        <div class="compose-meta"><span>Only your group will see this.</span><span id="character-count">0 / 600</span></div>
+        <button class="button button--dark button--full" type="submit">Add to our letter <span aria-hidden="true">↗</span></button>
+      </form>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
