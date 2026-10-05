@@ -29,8 +29,9 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir _site
-          cp index.html app.js styles.css styles.html styles-gallery.css styles-sync.js \
-            coastal.html postcard.html field-notes.html _site/
+          cp index.html app.js supabase-auth.js supabase-config.js styles.css styles.html styles-gallery.css styles-sync.js \
+            coastal.html postcard.html postcard-formats.html postcard-formats.css postcard-formats.js \
+            field-notes.html _site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

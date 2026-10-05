@@ -12,11 +12,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Kalam:wght@300;400&family=Patrick+Hand&family=Playfair+Display:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Handlee&family=Kalam:wght@300;400&family=Patrick+Hand&family=Playfair+Display:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
+    <script type="module" src="supabase-auth.js"></script>
   </head>
   <body data-theme="classic">
     <div class="app-shell">
@@ -35,7 +37,7 @@
           <span class="group-name">The Faraway Club</span>
           <span class="chevron" aria-hidden="true">⌄</span>
         </button>
-        <button class="profile-button" type="button" aria-label="Your profile">
+        <button class="profile-button" id="profile-button" type="button" aria-label="Sign in or open your profile">
           <span class="avatar avatar--green">Y</span>
         </button>
       </header>
@@ -157,6 +159,13 @@
         <h2 id="compose-title">Your words, <em>your way.</em></h2>
         <label class="field-label" for="question-select">Choose a question</label>
         <select id="question-select" name="question" required></select>
+        <label class="field-label postcard-font-label" for="handwriting-font">Your handwriting</label>
+        <select id="handwriting-font" name="handwritingFont" class="postcard-font-select">
+          <option value="caveat">Caveat · flowing</option>
+          <option value="kalam">Kalam · personal</option>
+          <option value="patrick-hand">Patrick Hand · casual</option>
+          <option value="handlee">Handlee · neat</option>
+        </select>
         <label class="field-label" for="answer-input">Your little note</label>
         <textarea
           id="answer-input"
@@ -169,6 +178,33 @@
         <div class="compose-meta"><span>Only your group will see this.</span><span id="character-count">0 / 600</span></div>
         <button class="button button--dark button--full" type="submit">Add to our letter <span aria-hidden="true">↗</span></button>
       </form>
+    </dialog>
+    <dialog class="account-dialog" id="account-dialog" aria-labelledby="account-title">
+      <div class="account-panel">
+        <div class="dialog-top">
+          <span class="eyebrow eyebrow--muted">YOUR ACCOUNT</span>
+          <button class="close-button" type="button" data-close-account aria-label="Close">×</button>
+        </div>
+        <h2 id="account-title">A little closer, <em>wherever you are.</em></h2>
+        <p class="account-description" id="account-description">Create an account or sign in to securely connect to your Supabase project.</p>
+        <form id="auth-form">
+          <label class="field-label" for="auth-display-name" id="auth-display-name-label" hidden>What should we call you?</label>
+          <input class="account-input" id="auth-display-name" name="displayName" type="text" maxlength="80" autocomplete="nickname" hidden />
+          <label class="field-label" for="auth-email">Email address</label>
+          <input class="account-input" id="auth-email" name="email" type="email" maxlength="254" autocomplete="email" required />
+          <label class="field-label" for="auth-password">Password</label>
+          <input class="account-input" id="auth-password" name="password" type="password" minlength="6" autocomplete="current-password" required />
+          <button class="button button--dark button--full" id="auth-submit" type="submit">Sign in</button>
+        </form>
+        <p class="account-message" id="auth-message" role="status" aria-live="polite"></p>
+        <button class="text-button account-mode-toggle" id="auth-mode-toggle" type="button">New here? Create an account</button>
+        <section class="account-signed-in" id="account-signed-in" aria-live="polite" hidden>
+          <p class="account-user" id="account-user"></p>
+          <p class="account-description">Check that your account can read and update only its own profile under the database's row-level security policies.</p>
+          <button class="button button--outline button--full" id="profile-smoke-test" type="button">Test profile read &amp; write</button>
+          <button class="text-button account-sign-out" id="auth-sign-out" type="button">Sign out</button>
+        </section>
+      </div>
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>

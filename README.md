@@ -15,6 +15,7 @@ navigation, and question selection:
 - **Main prototype:** [index.html](./index.html)
 - **Coastal theme:** [coastal.html](./coastal.html)
 - **Postcard theme:** [postcard.html](./postcard.html)
+- **Postcard answer formats:** [postcard-formats.html](./postcard-formats.html)
 - **Field Notes theme:** [field-notes.html](./field-notes.html)
 
 After GitHub Pages deployment, the pages are available at:
@@ -23,6 +24,7 @@ After GitHub Pages deployment, the pages are available at:
 - `https://arkrusade.github.io/letterbox/styles.html` — style gallery
 - `https://arkrusade.github.io/letterbox/coastal.html` — coastal theme
 - `https://arkrusade.github.io/letterbox/postcard.html` — postcard theme
+- `https://arkrusade.github.io/letterbox/postcard-formats.html` — postcard answer-format study
 - `https://arkrusade.github.io/letterbox/field-notes.html` — Field Notes theme
 
 The gallery previews are intentionally embedded app pages. Their synchronization
@@ -58,13 +60,20 @@ on the repository owner's GitHub plan and Pages access settings.
 | `styles.html` | **Style gallery:** side-by-side, interactive comparisons of the three themes. Scroll, switch tabs, or select a question in one preview to sync the others. |
 | `coastal.html` | Full-page preview of the cool blue and sea-glass coastal direction. |
 | `postcard.html` | Full-page preview of the warm paper, stamp, and keepsake postcard direction. |
+| `postcard-formats.html` | A visual study comparing three layouts for postcard-style answers. |
 | `field-notes.html` | Full-page preview of the botanical green, editorial Field Notes direction. |
 
-`FEATURES.txt` records the current feature inventory, prioritized gaps, and
+`FEATURES.md` records the current feature inventory, prioritized gaps, and
 open product decisions.
+
+[`DESIGN.md`](./DESIGN.md) documents the current page/link audit, prototype
+flows, planned app screens, and a workflow for keeping design decisions in sync
+with implementation.
 
 ## Database
 
 The versioned Supabase schema and setup steps are in [`supabase/`](./supabase/).
 See [`supabase/README.md`](./supabase/README.md) for linking the CLI and
-applying migrations to the hosted project.
+applying migrations to the hosted project. Browser authentication uses the
+public project URL and publishable key in [`supabase-config.js`](./supabase-config.js);
+the secret API key must never be included in the static app.

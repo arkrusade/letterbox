@@ -5,6 +5,18 @@ const themeDetails = {
   postcard: { name: "Postcards" },
   "field-notes": { name: "Field Notes" },
 };
+const handwritingFonts = {
+  caveat: "Caveat",
+  kalam: "Kalam",
+  "patrick-hand": "Patrick Hand",
+  handlee: "Handlee",
+};
+const sampleHandwriting = {
+  maya: "caveat",
+  jules: "patrick-hand",
+  ari: "kalam",
+};
+const handwritingStorageKey = "postmarked:handwriting-font";
 const requestedTheme = new URLSearchParams(window.location.search).get("theme");
 if (availableThemes.includes(requestedTheme)) {
   document.body.dataset.theme = requestedTheme;
@@ -119,6 +131,17 @@ function personById(id) {
   return group.friends.find((person) => person.id === id);
 }
 
+function getHandwritingFont(personId) {
+  if (personId !== "you") return sampleHandwriting[personId] || "caveat";
+  try {
+    const savedFont = localStorage.getItem(handwritingStorageKey);
+    return Object.hasOwn(handwritingFonts, savedFont) ? savedFont : "caveat";
+  } catch (error) {
+    console.warn("Could not read handwriting preference.", error);
+    return "caveat";
+  }
+}
+
 function avatarMarkup(person, extraClass = "") {
   return `<span class="avatar avatar--${person.color} ${extraClass}" aria-hidden="true">${person.initial}</span>`;
 }
@@ -195,13 +218,22 @@ function renderLetter() {
               .map((response) => {
                 const person = personById(response.personId) || group.friends.find((friend) => friend.isYou);
                 return `
-                  <article class="response-card response-card--${person.id} ${person.isYou ? "response-card--mine" : ""}">
-                    <div class="response-author">
-                      ${avatarMarkup(person)}
-                      <strong>${person.isYou ? "You" : person.name}</strong>
-                      <span>${person.city}</span>
+                  <article class="response-card response-card--${person.id} ${person.isYou ? "response-card--mine" : ""}" data-handwriting="${getHandwritingFont(person.id)}" role="button" tabindex="0" aria-pressed="false" aria-label="Postcard from ${escapeHtml(person.isYou ? "You" : person.name)}. Activate to turn it over.">
+                    <div class="postcard-inner">
+                      <div class="postcard-face postcard-front">
+                        <div class="response-author">
+                          ${avatarMarkup(person)}
+                          <strong>${person.isYou ? "You" : person.name}</strong>
+                          <span>${person.city}</span>
+                        </div>
+                        <p>${escapeHtml(response.text)}</p>
+                      </div>
+                      <div class="postcard-face postcard-back" aria-hidden="true">
+                        <div class="postcard-back-image"></div>
+                        <span class="postcard-back-caption">A little view from ${escapeHtml(person.city)}</span>
+                        <span class="postcard-back-hint">Tap to turn back</span>
+                      </div>
                     </div>
-                    <p>${escapeHtml(response.text)}</p>
                   </article>`;
               })
               .join("")}
@@ -222,6 +254,7 @@ const dialog = document.querySelector("#compose-dialog");
 const form = document.querySelector("#compose-form");
 const questionSelect = document.querySelector("#question-select");
 const answerInput = document.querySelector("#answer-input");
+const handwritingFontSelect = document.querySelector("#handwriting-font");
 const toast = document.querySelector("#toast");
 let toastTimeout;
 let activeView = "home";
@@ -274,6 +307,20 @@ function announce(message) {
   toastTimeout = setTimeout(() => toast.classList.remove("is-visible"), 2600);
 }
 
+handwritingFontSelect.value = getHandwritingFont("you");
+handwritingFontSelect.addEventListener("change", () => {
+  const font = handwritingFontSelect.value;
+  if (!Object.hasOwn(handwritingFonts, font)) return;
+  try {
+    localStorage.setItem(handwritingStorageKey, font);
+    renderLetter();
+  } catch (error) {
+    console.error("Could not save handwriting preference.", error);
+    handwritingFontSelect.value = getHandwritingFont("you");
+    announce("Your handwriting choice couldn’t be saved.");
+  }
+});
+
 document.querySelectorAll("[data-open-compose]").forEach((button) => button.addEventListener("click", openComposer));
 document.querySelectorAll("[data-open-letter]").forEach((button) => button.addEventListener("click", () => showView("letter")));
 document.querySelectorAll("[data-show-home]").forEach((button) => button.addEventListener("click", () => showView("home")));
@@ -282,6 +329,32 @@ document.querySelector("#main-content").addEventListener("click", (event) => {
   const questionControl = event.target.closest("[data-question-id]");
   if (questionControl) showView("letter", questionControl.dataset.questionId);
 });
+const letterBody = document.querySelector("#letter-body");
+letterBody.addEventListener("click", (event) => {
+  const postcard = event.target.closest(".response-card");
+  if (postcard) flipPostcard(postcard);
+});
+letterBody.addEventListener("keydown", (event) => {
+  if (event.target.matches(".response-card") && ["Enter", " "].includes(event.key)) {
+    event.preventDefault();
+    flipPostcard(event.target);
+  }
+});
+
+function flipPostcard(postcard) {
+  const isFlipped = postcard.getAttribute("aria-pressed") === "true";
+  postcard.setAttribute("aria-pressed", String(!isFlipped));
+  postcard.classList.toggle("is-flipped", !isFlipped);
+  postcard.querySelector(".postcard-front").setAttribute("aria-hidden", String(!isFlipped));
+  postcard.querySelector(".postcard-back").setAttribute("aria-hidden", String(isFlipped));
+  const authorName = postcard.querySelector(".response-author strong").textContent;
+  postcard.setAttribute(
+    "aria-label",
+    isFlipped
+      ? `Postcard from ${authorName}. Activate to turn it over.`
+      : `Back of postcard from ${authorName}. Activate to see the message.`,
+  );
+}
 document.querySelector("[data-close-compose]").addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", (event) => {
   if (event.target === dialog) dialog.close();
@@ -307,6 +380,7 @@ form.addEventListener("submit", (event) => {
   renderHome();
   renderLetter();
   form.reset();
+  handwritingFontSelect.value = getHandwritingFont("you");
   document.querySelector("#character-count").textContent = "0 / 600";
   dialog.close();
   announce("Your note is tucked into the letter.");

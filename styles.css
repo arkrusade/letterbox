@@ -401,6 +401,38 @@ h1 em, h2 em { color: var(--accent); font-weight: 500; }
 .compose-form select { height: 43px; padding: 0 11px; font-size: 11px; }
 .compose-form textarea { resize: vertical; min-height: 126px; padding: 12px; font: 13px/1.6 var(--serif); }
 .compose-form textarea::placeholder { color: #aaa69c; }
+.postcard-font-label, .postcard-font-select { display: none; }
+.account-dialog {
+  width: min(440px, calc(100vw - 30px));
+  max-width: none;
+  padding: 0;
+  border: 1px solid #e8e1d6;
+  border-radius: 20px;
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: 0 20px 80px rgb(43 38 30 / 20%);
+}
+.account-dialog::backdrop { background: rgb(40 40 36 / 38%); backdrop-filter: blur(3px); }
+.account-panel { padding: 25px; }
+.account-panel h2 { margin: 21px 0 9px; font: 500 27px/1.2 var(--serif); letter-spacing: -.03em; }
+.account-description { margin: 0 0 18px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.account-input {
+  width: 100%;
+  min-height: 43px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fffefa;
+  font: inherit;
+  font-size: 12px;
+}
+.account-message { min-height: 17px; margin: 12px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.account-message[data-state="error"] { color: #a34032; }
+.account-message[data-state="success"] { color: #426b49; }
+.account-mode-toggle { display: block; margin: 17px auto 0; }
+.account-user { margin: 14px 0; overflow-wrap: anywhere; font-size: 12px; font-weight: 700; }
+.account-sign-out { display: block; margin: 17px auto 0; }
 .compose-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 9px; }
 .toast {
   position: fixed;
@@ -611,41 +643,88 @@ body[data-theme="postcard"] .button { border-radius: 3px; }
 body[data-theme="postcard"] .sun-stamp { border-style: dashed; border-radius: 4px; transform: rotate(8deg); }
 body[data-theme="postcard"] .response-grid { grid-template-columns: 1fr; }
 body[data-theme="postcard"] .response-card {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+  perspective: 1200px;
+  text-align: left;
+}
+body[data-theme="postcard"] .response-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+body[data-theme="postcard"] .postcard-inner {
+  position: relative;
   display: grid;
+  min-height: 275px;
+  transform-style: preserve-3d;
+  transition: transform .65s cubic-bezier(.2, .7, .2, 1);
+}
+body[data-theme="postcard"] .response-card.is-flipped .postcard-inner {
+  transform: rotateY(180deg);
+}
+body[data-theme="postcard"] .postcard-face {
+  grid-area: 1 / 1;
   min-width: 0;
-  grid-template-columns: minmax(0, 1.45fr) minmax(72px, .8fr);
-  grid-template-rows: auto minmax(130px, 1fr);
-  gap: 0 12px;
-  padding: 12px;
   border: 1px solid #8d7356;
-  border-radius: 6px;
-  background: var(--paper);
+  border-radius: 0;
+  backface-visibility: hidden;
   box-shadow: inset 0 0 0 3px #fffaf0, inset 0 0 0 4px #cbb696, 1px 2px 0 rgb(110 83 53 / 12%);
 }
-body[data-theme="postcard"] .response-card--mine { background: #fff3e8; }
-body[data-theme="postcard"] .response-card::before {
-  content: "";
-  grid-column: 2;
-  grid-row: 2;
-  min-width: 0;
-  min-height: 130px;
-  margin: 2px;
+body[data-theme="postcard"] .postcard-front {
+  display: grid;
+  min-height: 275px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-rows: auto minmax(205px, 1fr);
+  gap: 0 10px;
+  padding: 18px;
+  background: var(--paper);
+}
+body[data-theme="postcard"] .response-card--mine .postcard-front { background: #fff3e8; }
+body[data-theme="postcard"] .postcard-back {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 18px;
+  background: #f7edda;
+  transform: rotateY(180deg);
+}
+body[data-theme="postcard"] .postcard-back-image {
+  flex: 1;
+  min-height: 205px;
   border: 1px solid #b69e7f;
   background:
-    radial-gradient(circle at 72% 24%, #f3da9b 0 8%, transparent 8.5%),
-    linear-gradient(155deg, transparent 53%, #748b68 53.5% 72%, transparent 72.5%),
-    linear-gradient(25deg, #b2bd89 0 35%, transparent 35.5%),
-    linear-gradient(#b9d7d6 0 58%, #ead9b6 58.5%);
-  box-shadow: inset 0 0 0 3px rgb(255 250 240 / 82%);
+    radial-gradient(ellipse at 72% 24%, #fff0be 0 7%, transparent 7.5%),
+    linear-gradient(170deg, transparent 48%, #647b63 48.5% 68%, transparent 68.5%),
+    linear-gradient(15deg, #a2b67d 0 35%, transparent 35.5%),
+    linear-gradient(#9bbfc9 0 58%, #f0d8a5 58.5%);
+  box-shadow: inset 0 0 0 4px rgb(255 250 240 / 86%);
 }
+body[data-theme="postcard"] .postcard-back-caption,
+body[data-theme="postcard"] .postcard-back-hint {
+  color: #75624c;
+  font: 12px/1.3 "Patrick Hand", cursive;
+  text-align: center;
+}
+body[data-theme="postcard"] .postcard-back-hint {
+  color: var(--muted);
+  font-size: 10px;
+}
+body[data-theme="postcard"] .letter-body { max-width: 760px; }
 body[data-theme="postcard"] .response-author {
   display: grid;
   min-width: 0;
   grid-column: 1 / -1;
   grid-row: 1;
-  grid-template-columns: minmax(0, 1fr) 25px;
+  grid-template-columns: minmax(0, 1fr) 34px;
   grid-template-rows: auto auto;
-  gap: 2px 7px;
+  gap: 2px 10px;
   align-content: start;
   margin: 0 0 5px;
 }
@@ -664,29 +743,78 @@ body[data-theme="postcard"] .response-author span:not(.avatar) {
   text-align: left;
 }
 body[data-theme="postcard"] .response-card p {
+  box-sizing: border-box;
   min-width: 0;
-  grid-column: 1;
+  grid-column: 1 / -1;
   grid-row: 2;
-  min-height: 130px;
-  padding: 26px 8px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 26' preserveAspectRatio='none'%3E%3Cpath d='M2 24H98' fill='none' stroke='%23815c3b' stroke-width='1.25' stroke-linecap='round'/%3E%3C/svg%3E");
+  width: 100%;
+  min-height: 205px;
+  padding: 25px 16px 19px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30' preserveAspectRatio='none'%3E%3Cpath d='M4 26H96' fill='none' stroke='%23815c3b' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
-  background-size: 100% 26px;
-  background-origin: content-box;
+  background-size: 100% 30px;
+  background-origin: border-box;
+  background-position: 0 25px;
   overflow-wrap: anywhere;
-  line-height: 26px;
+  word-break: normal;
+  line-height: 30px;
 }
 body[data-theme="postcard"] .response-card--maya p {
   color: #405f9d;
-  font: 500 18px/26px "Caveat", cursive;
 }
 body[data-theme="postcard"] .response-card--jules p {
   color: #465f91;
-  font: 15px/26px "Patrick Hand", cursive;
 }
 body[data-theme="postcard"] .response-card--ari p {
   color: #3f6498;
-  font: 400 15px/26px "Kalam", cursive;
+}
+body[data-theme="postcard"] .response-card[data-handwriting="caveat"] p {
+  font: 500 17px/30px "Caveat", cursive;
+}
+body[data-theme="postcard"] .response-card[data-handwriting="kalam"] p {
+  font: 400 15px/30px "Kalam", cursive;
+}
+body[data-theme="postcard"] .response-card[data-handwriting="patrick-hand"] p {
+  font: 16px/30px "Patrick Hand", cursive;
+}
+body[data-theme="postcard"] .response-card[data-handwriting="handlee"] p {
+  font: 15px/30px "Handlee", cursive;
+}
+body[data-theme="postcard"] .postcard-font-label {
+  display: block;
+  margin-top: 12px;
+}
+body[data-theme="postcard"] .postcard-font-select {
+  display: block;
+  width: 100%;
+  height: 39px;
+  padding: 0 10px;
+  border: 1px solid #d4bea1;
+  border-radius: 3px;
+  color: var(--ink);
+  background: #fffdf6;
+  font-size: 11px;
+}
+@media (max-width: 620px) {
+  body[data-theme="postcard"] .letter-body { width: 100%; }
+  body[data-theme="postcard"] .postcard-inner,
+  body[data-theme="postcard"] .postcard-front { min-height: 0; }
+  body[data-theme="postcard"] .postcard-front {
+    grid-template-rows: auto minmax(170px, 1fr);
+    gap: 0 8px;
+    padding: 12px;
+  }
+  body[data-theme="postcard"] .response-card p {
+    min-height: 170px;
+    padding: 23px 12px 16px;
+    background-position: 0 23px;
+    background-size: 100% 28px;
+    line-height: 28px;
+  }
+  body[data-theme="postcard"] .response-card[data-handwriting="caveat"] p { font-size: 15px; line-height: 28px; }
+  body[data-theme="postcard"] .response-card[data-handwriting="kalam"] p { font-size: 13px; line-height: 28px; }
+  body[data-theme="postcard"] .response-card[data-handwriting="patrick-hand"] p { font-size: 14px; line-height: 28px; }
+  body[data-theme="postcard"] .response-card[data-handwriting="handlee"] p { font-size: 13px; line-height: 28px; }
 }
 body[data-theme="postcard"] .compose-form textarea {
   min-height: 114px;

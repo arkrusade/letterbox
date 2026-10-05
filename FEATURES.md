@@ -19,26 +19,82 @@ Working in the front-end prototype:
 
 Prototype limitations:
 - Group members, questions, answers, and profile details are sample data.
-- Responses are stored only in the current browser; there is no server or
-  cross-device/group synchronization.
-- Profile button and member cards do not yet open profile screens.
-- Group switcher does not yet switch groups.
+- Newsletter content is still demo data; responses are stored only in the
+  current browser and do not yet synchronize across devices or groups.
+- The signed-in landing page is still a single-group demo, not a list of the
+  user's groups.
+- Profile button opens the account/auth dialog, but there is no editable profile
+  screen; member cards do not yet open member profiles.
+- Group switcher does not yet switch groups or return to a My groups hub.
 - Themes are visual explorations; there is no theme editor or saved group style.
+
+IMPLEMENTED FOUNDATION
+----------------------
+- Current page inventory, routes/links, design studies, and planned screen map
+  are tracked in `DESIGN.md`.
+- Local page/asset link audit passed for all current HTML pages and iframe
+  previews on 2026-10-04.
+- Supabase project schema is versioned in `supabase/migrations/` and applied to
+  the linked development project. All six application tables have RLS enabled.
+- Browser sign-up, email/password sign-in, session restoration, and sign-out
+  use the Supabase publishable key; no privileged API key is used in the app.
+- The account dialog includes an authenticated profile read/write check that
+  exercises the `profiles` RLS policies without changing the profile value.
+- Supabase public app configuration lives in `supabase-config.js`; the publishable
+  key is intended to be public. Never put the secret key or CLI token there.
+- `supabase/README.md` documents project configuration, auth redirects, and
+  testing. Authenticated newsletter/group screens remain future work.
+
+PILOT MVP — THREE PEOPLE, ONE GROUP, TEXT QUESTIONS AND RESPONSES
+-----------------------------------------------------------------
+The pilot is ready when three real accounts (one group owner and two members)
+can complete this end-to-end flow:
+
+[ ] Sign up/sign in as each of the three people; verify email confirmation.
+[ ] Create one group and add the owner and two members through a safe invite or
+    join flow. Do not expose admin/secret credentials in the browser.
+[ ] Create one open newsletter/session for that group, with the agreed 14-day
+    default cadence.
+[ ] Add a shared list of text questions to that session and show the same list
+    to all three members.
+[ ] Let each member submit and edit their own text responses while the session
+    is open; persist through Supabase, not localStorage.
+[ ] Show progress and group-attributed answers from the database to authorized
+    group members; verify a non-member cannot read the group.
+[ ] Deploy a stable app URL and allow its Auth redirect URL; share that URL
+    and the group invite with the three testers.
+[ ] Test the complete flow on a phone-sized viewport and confirm data survives
+    refresh and a second device/browser session.
+
+Not required for this first pilot: push/email notifications, phone/contact
+import, image answers, custom group themes, a newsletter archive, account
+deletion, or polished support for many groups. Keep data and queries scoped by
+group so a My groups hub and multiple memberships can be added without
+reworking the core flow.
 
 PRIORITY 0 — MAKE THE PROTOTYPE FEEL COMPLETE
 ---------------------------------------------
-[ ] Add a usable profile screen for the current user.
+[ ] Add a My groups landing page listing every group the user belongs to,
+    with open/create/join actions and an empty state.
+[ ] Add a usable account settings screen for the current user.
 [ ] Make member cards open a member profile (name, location/time zone, and
     responses in the current and past newsletters).
-[ ] Make group switcher open group details and a member list.
+[ ] Make group switching preserve the selected group context across its
+    questions, answers, newsletter, archive, and settings.
 [ ] Add clear loading, empty, error, and success states to the main screens.
 [ ] Keep question selection and scroll behavior working across the style gallery.
 
 PRIORITY 1 — CORE GROUP MVP
 ---------------------------
-[ ] Add a backend and database for accounts, groups, memberships, sessions,
-    questions, text answers, and published newsletters.
-[ ] Add sign-up/sign-in and profile editing.
+[x] Add the initial Supabase database schema for profiles, groups, memberships,
+    newsletters, questions, and text answers.
+[x] Add email/password sign-up/sign-in and a profile read/write permission check.
+[ ] Add account settings for display name, email, phone, and global notification
+    controls (master switch plus newsletter, question-list, and reminder types).
+[ ] Add personal per-group preferences for nickname, answer font, and
+    per-category notification overrides.
+[ ] Add shared group settings for membership/roles, newsletter style, weekly
+    cadence, time zone, and session schedule.
 [ ] Create groups and invite/join friends with a shareable invite link or code.
 [ ] Store phone numbers for invitations. Ask permission and explain the use.
 [ ] Allow importing contacts only after explicit user permission; let the user
@@ -54,8 +110,9 @@ PRIORITY 1 — CORE GROUP MVP
 
 PRIORITY 2 — SESSION CADENCE AND ARCHIVE
 ---------------------------------------
-[ ] Make session length configurable per group in the backend.
-[ ] Start with one newsletter every two weeks (a 14-day session).
+[ ] Make session length configurable per group in the backend; the requested
+    initial cadence is every two weeks (14 days), matching the current schema
+    default.
 [ ] Decide the group's time zone and the exact session start, close, and
     newsletter publication time; handle members in different time zones.
 [ ] Define what happens when a member has not submitted an answer at close.
@@ -101,16 +158,18 @@ OPEN PRODUCT DECISIONS
   on submitted questions?
 - Are answers visible as soon as they are submitted, or only after publication?
 - Are unanswered questions omitted, shown as blank, or followed up privately?
-- What is the exact biweekly schedule and which group time zone controls it?
+- What exact release/close/publication times and group time zone should be used
+  for the 14-day cadence?
 - Should members be able to edit or delete a response after the newsletter is
   published?
 - How long are uploaded images and archived newsletters retained?
-- Should theme selection belong to each member or to the whole group?
+- Group newsletter style belongs to the group; the answer handwriting/font
+  preference belongs to each member in each group.
 
 NEXT SUGGESTED BUILD
 --------------------
-Implement the backend data model and group/session flow first. Use a 14-day
-session as the initial default, enforce one member-submitted question per person
-per session, publish shared questions and text answers, then add archive
-browsing. This establishes the shared product behavior before adding contacts,
-notifications, and image uploads.
+Implement the authenticated group and session screens on top of the existing
+schema. Use a 14-day session as the initial default, enforce one
+member-submitted question per person per session, publish shared questions and
+text answers, then add archive browsing. This establishes the shared product
+behavior before adding contacts, notifications, and image uploads.

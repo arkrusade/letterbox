@@ -55,6 +55,35 @@ Creating Auth users automatically creates their profile. Group owners can start
 newsletters and add members; invite links and phone-contact import are not
 implemented yet.
 
+## Browser authentication and profile permission check
+
+The prototype's account button opens email/password sign-up and sign-in backed
+by Supabase Auth. The public configuration is in the root `supabase-config.js`;
+it contains the project URL and the **publishable** API key. Publishable keys
+are designed to be included in browser applications. Never put a `sb_secret_`
+key, database password, or `sbp_` CLI personal access token in that file or any
+browser code.
+
+To configure authentication:
+
+1. Set the Supabase project's **Site URL** to your local app origin while
+   developing (for example, `http://localhost:8765`), and add
+   `http://localhost:8765/**` and `http://127.0.0.1:8765/**` under
+   **Authentication → URL Configuration → Redirect URLs**. Add
+   `https://arkrusade.github.io/letterbox/**` there before testing sign-up on
+   GitHub Pages.
+2. If email confirmation is enabled, confirm the address from the email before
+   signing in. Confirmation links return to the page where sign-up began.
+3. Sign in, open the account button, and choose **Test profile read & write**.
+   It reads the current user's profile, updates `display_name` to its existing
+   value, then reads it back to verify the authenticated RLS permissions. The
+   update trigger refreshes `updated_at`; the profile's visible data is
+   unchanged.
+
+The newsletter and group screens still use sample content. This check validates
+the Auth session and the profile RLS policies only; it does not create sample
+groups, members, questions, or answers.
+
 ## Local development
 
 Run `supabase start` to start the local Supabase stack (Docker required), then

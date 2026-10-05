@@ -13,6 +13,48 @@ experience should feel personal and editorial, work well on a phone, and keep
 saved content independent from its presentation so the newsletter can be
 restyled without changing what people wrote.
 
+## Multi-group product model
+
+One account can belong to any number of groups. After sign-in, the user's
+landing page is **My groups**, not a preselected group's home. It shows the
+groups the user has joined, each with its name, chosen style, latest
+newsletter/session status, unanswered prompt count, and next activity date.
+Primary actions are **Open group**, **Create group**, and **Join with invite**.
+An account with no memberships sees a useful empty state with Create and Join
+actions.
+
+Opening a group enters that group's context. The group switcher in the group
+header returns to My groups or opens a compact list of the user's other groups.
+Choosing another group changes context; it does not merge questions, answers,
+settings, or members. From then on, the same session, question, answer,
+newsletter, and archive flow operates on the selected group. Deep links must
+verify membership before showing group content.
+
+```mermaid
+flowchart TD
+  A[Sign in] --> H[My groups hub]
+  H -->|open group| G[Selected group home]
+  H -->|create| C[Create group]
+  H -->|invite link or code| J[Join group]
+  C --> G
+  J --> G
+  G -->|switch group| H
+  G --> Q[Shared question list]
+  Q --> R[Answer]
+  R --> G
+  G --> N[Group newsletter]
+  N --> AR[This group's archive]
+  G --> GS[Shared group settings]
+  G --> MP[My preferences in this group]
+  H --> AS[Account settings]
+  AS --> H
+```
+
+The current `groups` and `group_members` schema already represents many groups
+per user: `group_members` has one row per `(group_id, user_id)`. The existing
+prototype does not yet read that data or render the My groups hub. The current
+group-home mockup is a selected-group screen, not the signed-in landing page.
+
 ## Current user flow
 
 ```mermaid
@@ -35,7 +77,7 @@ flowchart TD
   A -->|sign up / sign in| S[Supabase Auth]
   S -->|confirmed, signed-in session| A
   A -->|profile read/write check| DB[(Own profile in Supabase)]
-  H -. group switcher is not wired .-> H
+  H -. demo only: group switcher is not wired .-> H
 ```
 
 The main app does not currently use URL routes for its home/newsletter views.
@@ -98,27 +140,117 @@ success states.
 | --- | --- | --- | --- | --- | --- |
 | P01 | Welcome / sign in | Explain the app and let returning users authenticate. | Signed-out launch or account action. | Sign in; create account; password recovery. | Yes |
 | P02 | Create account / confirm email | Register identity and guide email verification. | Welcome. | Confirm email; return to sign in/app. | Yes |
-| P03 | Profile setup | Choose display name and optional location/time zone. | First authenticated session. | Save profile; create or join a group. | Yes |
-| P04 | Group home | Show the current open session, shared prompts, response progress, and group members. | Authenticated launch / group switch. | Answer prompt; read current newsletter; open group details. | Yes |
-| P05 | Create group | Create a private group and establish basic name/time zone/cadence. | No groups yet or group menu. | Create group; invite members; reach group home. | Yes |
-| P06 | Join group / accept invite | Join a group using a shareable invite link or code. | Invite link or join action. | Preview group; accept; go to group home. | Yes |
-| P07 | Group details and members | Explain membership and settings; provide safe group management. | Group home switcher or details action. | Invite, leave, remove member, edit permitted settings. | Yes |
-| P08 | Session questions | Collect member-submitted prompts and show the shared set. | Group home/session card. | Add one question; review the final shared questions. | Yes |
-| P09 | Answer composer | Submit a response to a shared question; start with text. | Group home prompt or newsletter. | Save/edit allowed draft; return to session. | Yes |
-| P10 | Newsletter | Present each shared question with attributed group answers. | Group home / publication notice. | Read, respond if open, open archive. | Yes |
-| P11 | Newsletter archive | Browse past published newsletters without modifying them. | Newsletter or group details. | Open a past newsletter. | Next |
-| P12 | Member profile | Show member display name, optional location/time zone, and their group contributions. | Member card or response attribution. | Return to group/newsletter. | Next |
-| P13 | Account and preferences | Edit profile, sign out, configure reminders/privacy, and manage account. | Profile control. | Save profile; notification/privacy options; deletion/export. | Yes |
-| P14 | Image answer composer | Add an optional image with accessible text response and upload state. | Answer composer. | Select/capture, preview, submit, retry/remove. | Later |
-| P15 | Presentation preferences | Choose a group's newsletter appearance without changing saved content. | Group settings. | Preview theme; save group style. | Later |
+| P03 | Profile setup | Choose account name and optional contact/location details. | First authenticated session. | Save profile; go to My groups. | Yes |
+| P04 | My groups hub | List every group the signed-in user belongs to, plus activity summaries. | Authenticated launch; group switcher. | Open/switch group; create group; join by invite; open account settings. | Yes |
+| P05 | Create group | Create a private group and set its name, style, time zone, and cadence. | My groups. | Create; invite members; open that group's home. | Yes |
+| P06 | Join group / accept invite | Join a group using a shareable invite link or code. | My groups or invite link. | Preview group; accept; open that group's home. | Yes |
+| P07 | Group home | Show the selected group's open session, shared prompts, response progress, and members. | My groups or a group deep link. | Answer prompt; read newsletter; open archive, group settings, or personal group preferences. | Yes |
+| P08 | Session questions | Collect member-submitted prompts and show the shared set. | Selected group home/session card. | Add one question; review the final shared questions. | Yes |
+| P09 | Answer composer | Submit a response to a shared question; start with text. | Selected group home prompt or newsletter. | Save/edit allowed answer; return to this group's session. | Yes |
+| P10 | Newsletter | Present this group's shared questions with attributed answers. | Group home / publication notice. | Read; respond if open; open this group's archive. | Yes |
+| P11 | Newsletter archive | Browse past published newsletters for the selected group. | Group home or newsletter. | Open a past newsletter in the same group context. | Next |
+| P12 | Member profile | Show a member's group-specific nickname, optional location/time zone, and contributions. | Member card or response attribution. | Return to this group/newsletter. | Next |
+| P13 | Account settings | Manage identity, contact methods, global notification settings, and account actions. | My groups/profile control. | Save account settings; sign out; export/delete account. | Yes |
+| P14 | Shared group settings | Manage the selected group's members, style, cadence, time zone, and group rules. | Group home/details; owner controls as appropriate. | Save shared settings; manage invitations/members; return to group. | Yes |
+| P15 | My preferences in this group | Set the signed-in user's nickname, handwriting font, and notification overrides for one group. | Selected group home/menu. | Save personal group preferences without changing anyone else's settings. | Yes |
+| P16 | Image answer composer | Add an optional image with accessible text response and upload state. | Answer composer. | Select/capture, preview, submit, retry/remove. | Later |
+| P17 | Presentation preview | Preview available newsletter themes before changing the group's style. | Shared group settings. | Apply selected group theme; return to settings. | Later |
+
+## Settings by scope
+
+Settings should make ownership obvious. **Account settings** affect the person
+everywhere; **My preferences in this group** affect only the current user's
+experience in one group; **Shared group settings** affect everyone in that
+group and should have role-based edit controls.
+
+### Account settings — global to the user
+
+- **Identity:** account display name, email address, password, and sign-in
+  method. Changing email should require verification of the new address.
+- **Phone:** optional phone number, verification status, and whether it may be
+  used for account recovery or future invitations. Ask before SMS use; adding a
+  number does not imply consent to import contacts.
+- **Notifications — master control:** all notifications on/off.
+- **Notification defaults:** new newsletter published, new question list
+  available, and session reminders. These are the user's defaults across all
+  groups.
+- **Delivery/privacy:** enabled delivery channels (only those actually
+  implemented), quiet hours/time zone, and notification preview privacy.
+- **Account actions:** sign out, request data export, and delete account with
+  clear consequences for authored content and group ownership.
+
+### My preferences in this group — personal, per membership
+
+- **Nickname in this group:** optional group-only name shown to fellow members;
+  fall back to the account display name when blank.
+- **Handwriting/font choice:** choose how this member's own newsletter answers
+  are rendered in this group. This must be group-specific, not the current
+  browser-global `localStorage` preference.
+- **Notifications in this group:** override account defaults separately for
+  new newsletters, new question lists, and reminders; offer per-group on/off
+  controls without changing the user's other groups.
+- **Optional profile visibility:** whether the user's location/time zone is
+  shown to this group, if that privacy control is adopted.
+
+### Shared group settings — applies to all members
+
+- **Membership:** roster, roles/owner(s), invite link/code, invite revocation,
+  member removal, and leaving the group.
+- **Presentation:** group newsletter style (for example, Postcards, Coastline,
+  Field Notes, or a new theme). This is separate from each member's font.
+- **Cadence:** how often a question list opens and a newsletter is published.
+  The agreed initial direction is every two weeks (14 days), which matches the
+  current schema default. Keep the interval configurable, and define the
+  group's time zone and release/close/publication times before automating it.
+- **Schedule:** group time zone, question release/response deadlines, and
+  publication time.
+- **Group rules:** prompt submission/review, response visibility, unanswered
+  questions, and whether sent newsletters can be edited or retracted.
+- Only authorized group roles can edit shared settings. Personal membership
+  preferences remain editable by that member regardless of group ownership.
+
+### Notification precedence
+
+Use the account master switch as a true kill switch. Account category choices
+are the global defaults; a per-group choice may mute a category for that group
+or inherit the account default. A group preference must never silently turn on
+a category the user disabled globally. Store category keys consistently:
+`newsletter_published`, `question_list_available`, and `session_reminder`.
+If future group announcements are added, define them as a separate category.
+
+## Data model implications
+
+The currently applied schema provides `profiles.display_name`, one global
+profile time zone, group-wide `groups.time_zone` and `groups.cadence_days`, and
+the many-to-many membership relation. It does **not** yet store:
+
+- account phone or notification defaults/preferences;
+- a group-specific nickname or per-member font preference;
+- per-group member notification overrides;
+- the group's chosen newsletter theme.
+
+The applied `cadence_days` default of 14 matches the agreed pilot cadence;
+configurable schedule controls and automatic session creation still need app
+work, but the pilot does not need a cadence migration.
+
+Do not edit the already-applied initial migration. Add a new migration when
+implementing these settings: use Auth for verified email/phone credentials;
+profile/app settings for account preferences; membership-keyed settings for
+nickname/font/notification overrides; and a group field for shared theme.
+Consider a dedicated JSON or relational preference table with validated
+notification category keys rather than duplicating notification columns on
+every feature table. Apply RLS so members can edit only their own per-group
+preferences, while shared group fields remain owner/admin controlled.
 
 ### Intended core flow
 
 ```mermaid
 flowchart LR
   W[Welcome / sign in] --> O[Profile setup]
-  O --> G[Create or join group]
-  G --> H[Group home]
+  O --> GH[My groups hub]
+  GH --> G[Create or join group]
+  G --> H[Selected group home]
+  GH --> H
   H --> Q[Shared session questions]
   Q --> A[Answer composer]
   A --> H
@@ -126,7 +258,9 @@ flowchart LR
   N --> AR[Newsletter archive]
   H --> D[Group details / members]
   D --> I[Invite / join]
-  H --> P[Account / profile]
+  GH --> P[Account settings]
+  H --> GS[Shared group settings]
+  H --> MP[My preferences in this group]
 ```
 
 ## Design system and content model
