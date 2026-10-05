@@ -1,4 +1,4 @@
-# Somewhere
+# Postmarked
 
 A mobile-first prototype for keeping in touch with friends around the world
 through shared reflection prompts and a newsletter-style collection of answers.
@@ -62,3 +62,9 @@ on the repository owner's GitHub plan and Pages access settings.
 
 `FEATURES.txt` records the current feature inventory, prioritized gaps, and
 open product decisions.
+
+## Database
+
+The versioned Supabase schema and setup steps are in [`supabase/`](./supabase/).
+See [`supabase/README.md`](./supabase/README.md) for linking the CLI and
+applying migrations to the hosted project.

@@ -1,6 +1,6 @@
 const availableThemes = ["classic", "coastal", "postcard", "field-notes"];
 const themeDetails = {
-  classic: { name: "Somewhere" },
+  classic: { name: "Postmarked" },
   coastal: { name: "The Coastline" },
   postcard: { name: "Postcards" },
   "field-notes": { name: "Field Notes" },
@@ -9,7 +9,7 @@ const requestedTheme = new URLSearchParams(window.location.search).get("theme");
 if (availableThemes.includes(requestedTheme)) {
   document.body.dataset.theme = requestedTheme;
 }
-document.title = `${themeDetails[document.body.dataset.theme]?.name || "Somewhere"} — a little closer`;
+document.title = `${themeDetails[document.body.dataset.theme]?.name || "Postmarked"} — a little closer`;
 
 function getCurrentWeek() {
   const start = new Date();
@@ -195,7 +195,7 @@ function renderLetter() {
               .map((response) => {
                 const person = personById(response.personId) || group.friends.find((friend) => friend.isYou);
                 return `
-                  <article class="response-card ${person.isYou ? "response-card--mine" : ""}">
+                  <article class="response-card response-card--${person.id} ${person.isYou ? "response-card--mine" : ""}">
                     <div class="response-author">
                       ${avatarMarkup(person)}
                       <strong>${person.isYou ? "You" : person.name}</strong>
