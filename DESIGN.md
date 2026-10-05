@@ -1,4 +1,4 @@
-# Somewhere — product and page design
+# Postmarked — product and page design
 
 This document is the working source of truth for the app's screen map, user
 flows, and design decisions. Update it when a page is added, a navigation
@@ -7,7 +7,7 @@ status honest: a demo, a modal, and a planned page are different things.
 
 ## Product intent
 
-Somewhere helps friends who live far apart stay close through shared
+Postmarked helps friends who live far apart stay close through shared
 reflection prompts and a newsletter-like collection of their answers. The
 experience should feel personal and editorial, work well on a phone, and keep
 saved content independent from its presentation so the newsletter can be
@@ -50,45 +50,57 @@ flowchart TD
   AS --> H
 ```
 
-The current `groups` and `group_members` schema already represents many groups
-per user: `group_members` has one row per `(group_id, user_id)`. The existing
-prototype does not yet read that data or render the My groups hub. The current
-group-home mockup is a selected-group screen, not the signed-in landing page.
+The current `groups` and `group_members` schema represents many groups per
+user: `group_members` has one row per `(group_id, user_id)`. The authenticated
+entry reads and renders those memberships and lets a signed-in user create a
+group; the visual group-home mockup remains a selected-group screen, not the
+signed-in landing page.
+
+### Three-person pilot flow
+
+Pilot members create normal Supabase email/password accounts. Sign-up collects
+a display name and stores it in the server-side profile for response
+attribution. A shared group invite link can be opened before or after sign-up;
+the user must be authenticated before the server validates the invite and adds
+their membership. Never rely on a typed name or localStorage as identity or
+authorization.
+
+For the initial pilot, create one open 14-day newsletter/session and attach a
+fixed app-provided question set to it. All group members see the same questions;
+they submit and edit only their own text responses while the session is open.
+Question authoring, question voting, and question setup by testers are out of
+scope. Store the shared questions and responses in Supabase so attribution,
+RLS, refresh, and cross-device access can be tested.
 
 ## Current user flow
 
 ```mermaid
 flowchart TD
-  G[Style gallery] --> H[Group home demo]
-  G --> C[Coastal preview]
-  G --> P[Postcards preview]
-  G --> F[Field Notes preview]
-  G --> PF[Postcard answer formats study]
-  C --> H
-  P --> H
-  F --> H
-  PF --> G
-  H -->|question card or Our letter| L[Newsletter demo]
-  L -->|back or Home| H
-  H -->|Write| W[Answer composer dialog]
-  L -->|Leave a note| W
-  W -->|save in this browser| H
-  H -->|profile button| A[Account dialog]
-  A -->|sign up / sign in| S[Supabase Auth]
-  S -->|confirmed, signed-in session| A
-  A -->|profile read/write check| DB[(Own profile in Supabase)]
-  H -. demo only: group switcher is not wired .-> H
+  I[Main app index] --> A[Sign up / sign in]
+  A -->|email confirmation if enabled| A
+  A -->|authenticated session| P[Load or complete profile]
+  P --> G[Load memberships from Supabase]
+  G -->|create group| CG[Create group and owner membership]
+  CG --> G
+  G -->|membership exists| N[Group listed; group letter UI pending]
+  S[Style gallery] --> C[Coastal preview]
+  S --> PC[Postcards preview]
+  S --> F[Field Notes preview]
+  S --> PF[Postcard answer formats study]
 ```
 
-The main app does not currently use URL routes for its home/newsletter views.
-Those are in-page states. The account and answer composer are dialogs. Refreshing
-or sharing a URL does not preserve the selected in-page view or question.
+Plain `/` or `index.html` is the authenticated app entry. The visual group and
+newsletter prototype is isolated behind `?theme=...` and is used by the design
+gallery and theme preview pages. The authenticated entry supports
+sign-up/sign-in, profile completion, reading memberships, and creating a group
+with owner membership. It does not yet accept invites or open real group
+newsletters.
 
 ## Existing pages and destinations
 
 | Page / URL | Purpose and current behavior | Links in / links out | Status |
 | --- | --- | --- | --- |
-| `index.html` | Main mobile-first app prototype: sample group home, weekly prompts, sample members, newsletter, local text composer, profile/account dialog. `?theme=classic` is the default; `?theme=coastal`, `?theme=postcard`, and `?theme=field-notes` change the presentation. | Styles opens `styles.html` in the top window. Home and Our letter switch in-page views; prompt cards jump to the matching newsletter question; Write opens the composer; profile opens auth. The wordmark `#` goes to the top of this document. | Implemented, with demo group/newsletter data. |
+| `index.html` | Real app entry: email/password sign-up/sign-in, profile setup, current user's group memberships, and group creation. Add `?theme=classic`, `?theme=coastal`, `?theme=postcard`, or `?theme=field-notes` for the isolated sample-content prototype. | Authenticated entry loads profile/groups and creates a group with owner membership. The theme prototype has in-page Home/Our letter, prompt jumps, composer, and Styles link to the gallery. | Auth/profile/group-list and group creation implemented; invites and real newsletter views are pending. |
 | `styles.html` | Design comparison of three full-content themes. Each live preview is an `index.html?theme=...` iframe. Scroll position and Home/Our letter/question navigation are synchronized between previews. | Wordmark goes to `index.html`; Postcard formats goes to `postcard-formats.html`; each card opens `coastal.html`, `postcard.html`, or `field-notes.html`. | Implemented design study. |
 | `coastal.html` | Standalone Coastline presentation; frames `index.html?theme=coastal`. | The embedded app's Styles link exits the frame to `styles.html`. | Implemented theme wrapper. |
 | `postcard.html` | Standalone Postcards presentation; frames `index.html?theme=postcard`. | The embedded app's Styles link exits the frame to `styles.html`. | Implemented theme wrapper. |
@@ -113,13 +125,17 @@ uses the Supabase project URL and publishable key from `supabase-config.js`.
 
 ### Navigation and completeness notes
 
-- Home, Our letter, question jumps, answer composer, profile/account, sign-up,
-  sign-in, sign-out, and the own-profile permission check have interactions.
-- Newsletter answers and group/member data remain sample content. Submitted
-  demo answers and the handwriting preference are browser-local only.
-- The profile button opens account/auth, not a profile editor.
-- The group switcher is currently an inert button; it does not select a group
-  or show details/members.
+- The main app handles sign-up, sign-in, sign-out, profile setup, group
+  membership reads, and authenticated group creation. Group/newsletter
+  interactions currently exist only in the explicitly marked visual prototype.
+- On the main app entry, memberships and group creation use Supabase. Invite
+  acceptance and group/newsletter screens are not connected yet.
+- Newsletter answers and group/member content in `?theme=...` previews are
+  sample data. Preview responses and handwriting preferences are browser-local.
+- The preview profile button opens account/auth, not a profile editor. The
+  main app provides profile setup but not full account settings.
+- The preview group switcher is inert; the main app lists memberships but
+  cannot open or switch to a group's real content yet.
 - The style gallery's preview cards are interactive iframes. Each embedded app
   can open its own dialogs and navigate between its in-page views.
 - No dedicated routes/screens currently exist for creating or joining groups,
@@ -138,14 +154,14 @@ success states.
 
 | ID | Screen | Purpose | Main entry | Main actions / next screens | MVP |
 | --- | --- | --- | --- | --- | --- |
-| P01 | Welcome / sign in | Explain the app and let returning users authenticate. | Signed-out launch or account action. | Sign in; create account; password recovery. | Yes |
-| P02 | Create account / confirm email | Register identity and guide email verification. | Welcome. | Confirm email; return to sign in/app. | Yes |
-| P03 | Profile setup | Choose account name and optional contact/location details. | First authenticated session. | Save profile; go to My groups. | Yes |
+| P01 | Welcome / sign in | Explain the app and let returning users authenticate. | Signed-out launch or account action. | Sign in; create account; password recovery. | Pilot |
+| P02 | Create account / confirm email | Register identity and guide email verification. | Welcome. | Confirm email; return to sign in/app. | Pilot |
+| P03 | Profile setup | Choose account name and optional contact/location details. | First authenticated session. | Save profile; go to My groups or invited group. | Pilot |
 | P04 | My groups hub | List every group the signed-in user belongs to, plus activity summaries. | Authenticated launch; group switcher. | Open/switch group; create group; join by invite; open account settings. | Yes |
-| P05 | Create group | Create a private group and set its name, style, time zone, and cadence. | My groups. | Create; invite members; open that group's home. | Yes |
-| P06 | Join group / accept invite | Join a group using a shareable invite link or code. | My groups or invite link. | Preview group; accept; open that group's home. | Yes |
+| P05 | Create group | Create a private group with an 80-character name; its creator becomes owner and cadence defaults to 14 days. | My groups. | Create group; return to the group list. | Implemented |
+| P06 | Join group / accept invite | Join a group using a validated shareable invite link or code. | My groups or invite link. | Sign in if needed; validate invite; accept; open that group's home. | Pilot |
 | P07 | Group home | Show the selected group's open session, shared prompts, response progress, and members. | My groups or a group deep link. | Answer prompt; read newsletter; open archive, group settings, or personal group preferences. | Yes |
-| P08 | Session questions | Collect member-submitted prompts and show the shared set. | Selected group home/session card. | Add one question; review the final shared questions. | Yes |
+| P08 | Session questions | Show the fixed app-provided question set selected for the group session. | Selected group home/session card. | Read the shared prompts; answer them. Question authoring is out of pilot scope. | Pilot |
 | P09 | Answer composer | Submit a response to a shared question; start with text. | Selected group home prompt or newsletter. | Save/edit allowed answer; return to this group's session. | Yes |
 | P10 | Newsletter | Present this group's shared questions with attributed answers. | Group home / publication notice. | Read; respond if open; open this group's archive. | Yes |
 | P11 | Newsletter archive | Browse past published newsletters for the selected group. | Group home or newsletter. | Open a past newsletter in the same group context. | Next |
@@ -229,9 +245,18 @@ the many-to-many membership relation. It does **not** yet store:
 - per-group member notification overrides;
 - the group's chosen newsletter theme.
 
+The follow-on `create_group(text)` database function runs as the authenticated
+user and creates the group and owner membership in one transaction, subject to
+the existing RLS policies. It does not create a newsletter, seed prompts, or
+invite other members; those are separate pilot steps.
+
 The applied `cadence_days` default of 14 matches the agreed pilot cadence;
 configurable schedule controls and automatic session creation still need app
-work, but the pilot does not need a cadence migration.
+work, but the pilot does not need a cadence migration. Display names must be
+stored in the authenticated user's server-side profile, not solely in
+localStorage. The preset questions must be attached to the group's newsletter
+in the database so every member sees the same question IDs and responses can
+reference them.
 
 Do not edit the already-applied initial migration. Add a new migration when
 implementing these settings: use Auth for verified email/phone credentials;
@@ -246,7 +271,7 @@ preferences, while shared group fields remain owner/admin controlled.
 
 ```mermaid
 flowchart LR
-  W[Welcome / sign in] --> O[Profile setup]
+  W[Welcome / sign in] --> O[Account and profile setup]
   O --> GH[My groups hub]
   GH --> G[Create or join group]
   G --> H[Selected group home]

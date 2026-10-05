@@ -2,12 +2,20 @@
 
 A mobile-first prototype for keeping in touch with friends around the world
 through shared reflection prompts and a newsletter-style collection of answers.
-This repository is a front-end skeleton with sample content; responses are
-saved in the current browser and are not shared with a real group.
+The root app entry uses Supabase email/password authentication, loads the
+signed-in user's profile and group memberships, and lets authenticated users
+create groups. Invitations and shared newsletter responses are still being
+connected. Visual sample content lives in the style previews, not in the
+authenticated app flow.
 
 ## Preview
 
-The style gallery is the best place to start. It shows all three visual
+The main app is the starting point for account setup:
+
+- **Main app:** [index.html](./index.html) — sign up/sign in, set a display
+  name, view your groups, and create a group.
+
+The style gallery is a separate design preview. It shows all three visual
 directions side by side, with live previews that synchronize scrolling,
 navigation, and question selection:
 
@@ -38,7 +46,8 @@ From the repository directory:
 python3 -m http.server 8765
 ```
 
-Then open <http://localhost:8765/styles.html>.
+Then open <http://localhost:8765/> for the account flow, or
+<http://localhost:8765/styles.html> for visual previews.
 
 ## GitHub Pages deployment
 
@@ -56,7 +65,7 @@ on the repository owner's GitHub plan and Pages access settings.
 
 | Page | What it shows |
 | --- | --- |
-| `index.html` | Main prototype: the group home, shared weekly questions, member list, text reply composer, and newsletter view. |
+| `index.html` | Main app entry: Supabase sign-up/sign-in, profile setup, and the signed-in user's group list. `?theme=...` opens the isolated visual prototype used by the style previews. |
 | `styles.html` | **Style gallery:** side-by-side, interactive comparisons of the three themes. Scroll, switch tabs, or select a question in one preview to sync the others. |
 | `coastal.html` | Full-page preview of the cool blue and sea-glass coastal direction. |
 | `postcard.html` | Full-page preview of the warm paper, stamp, and keepsake postcard direction. |

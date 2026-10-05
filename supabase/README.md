@@ -5,7 +5,7 @@ The initial application schema is defined in
 Keep future schema changes in new timestamped migration files; do not edit a
 migration after it has been applied to a shared database.
 
-## Apply the initial schema to the linked project
+## Apply schema migrations to the linked project
 
 Install the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started),
 then run these commands from the repository root:
@@ -37,9 +37,10 @@ The CLI keeps its project-link metadata in your local Supabase configuration and
 the ignored `supabase/.temp/` directory.
 
 Before applying migrations, confirm that the linked project reference is
-`fnihsbhxjhmcebvqbkgs` and that `npx supabase db push --dry-run` lists only the
-initial Letterbox schema. Then run `npx supabase db push` to apply pending
-migrations to the linked remote database. It does not reset the database.
+`fnihsbhxjhmcebvqbkgs`. Review the output of
+`npx supabase db push --dry-run` to verify that it lists only the migrations
+you intend to apply, then run `npx supabase db push` to apply them to the linked
+remote database. It does not reset the database.
 
 The current schema includes:
 
@@ -54,6 +55,12 @@ The current schema includes:
 Creating Auth users automatically creates their profile. Group owners can start
 newsletters and add members; invite links and phone-contact import are not
 implemented yet.
+
+The follow-on `create_group(text)` migration exposes an authenticated,
+row-level-security-checked operation that creates a group and its creator's
+owner membership atomically. It validates the group name and does not grant
+anonymous access. It does not create the group's first newsletter, questions,
+or invitations.
 
 ## Browser authentication and profile permission check
 
@@ -83,6 +90,12 @@ To configure authentication:
 The newsletter and group screens still use sample content. This check validates
 the Auth session and the profile RLS policies only; it does not create sample
 groups, members, questions, or answers.
+
+The project currently reports email sign-ups enabled and email auto-confirm
+disabled: new users must follow the confirmation email before they can sign in.
+The browser integration and Auth endpoint are configured, but complete the
+sign-up → confirmation → sign-in → profile-check flow with a real tester
+account before inviting the pilot group.
 
 ## Local development
 

@@ -11,3 +11,28 @@ document.querySelectorAll(".format-card").forEach((card) => {
     card.querySelector(".format-reverse").setAttribute("aria-hidden", String(!isFlipped));
   });
 });
+
+const paletteSelect = document.querySelector("#format-palette");
+const paletteStorageKey = "postmarked:postcard-format-palette";
+const paletteNames = ["postcard", "seaside", "lavender", "citrus"];
+
+try {
+  const savedPalette = localStorage.getItem(paletteStorageKey);
+  if (paletteNames.includes(savedPalette)) {
+    paletteSelect.value = savedPalette;
+    document.body.dataset.palette = savedPalette;
+  }
+} catch (error) {
+  console.warn("Could not read saved postcard palette.", error);
+}
+
+paletteSelect.addEventListener("change", () => {
+  const palette = paletteSelect.value;
+  if (!paletteNames.includes(palette)) return;
+  document.body.dataset.palette = palette;
+  try {
+    localStorage.setItem(paletteStorageKey, palette);
+  } catch (error) {
+    console.error("Could not save postcard palette.", error);
+  }
+});

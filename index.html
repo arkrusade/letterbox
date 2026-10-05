@@ -16,11 +16,88 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.LETTERBOX_PREVIEW =
+        new URLSearchParams(window.location.search).has("theme") ||
+        new URLSearchParams(window.location.search).get("preview") === "1";
+      document.documentElement.classList.add(
+        window.LETTERBOX_PREVIEW ? "preview-mode" : "app-mode",
+      );
+    </script>
     <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
     <script type="module" src="supabase-auth.js"></script>
   </head>
   <body data-theme="classic">
+    <div class="entry-shell" id="app-entry" role="main" hidden>
+      <header class="entry-header">
+        <a class="wordmark" href="index.html" aria-label="Postmarked home">
+          <span class="wordmark-mark" aria-hidden="true">p.</span>
+          <span>Postmarked</span>
+        </a>
+        <a class="styles-link" href="styles.html">See design samples <span aria-hidden="true">↗</span></a>
+      </header>
+      <section class="entry-card" id="entry-auth-view" aria-labelledby="entry-title" hidden>
+        <p class="eyebrow"><span class="status-dot"></span> A LITTLE CLOSER, WHEREVER YOU ARE</p>
+        <h1 id="entry-title">Your people,<br /><em>in your corner.</em></h1>
+        <p class="entry-intro">Small questions, thoughtful replies, and a little letter from the friends you miss.</p>
+        <form id="entry-auth-form">
+          <label class="field-label" for="entry-display-name" id="entry-name-label" hidden>Your name</label>
+          <input class="account-input" id="entry-display-name" name="displayName" type="text" maxlength="80" autocomplete="nickname" hidden />
+          <label class="field-label" for="entry-email">Email address</label>
+          <input class="account-input" id="entry-email" name="email" type="email" maxlength="254" autocomplete="email" required />
+          <label class="field-label" for="entry-password">Password</label>
+          <input class="account-input" id="entry-password" name="password" type="password" minlength="6" autocomplete="current-password" required />
+          <button class="button button--dark button--full" id="entry-auth-submit" type="submit">Sign in</button>
+        </form>
+        <p class="account-message" id="entry-auth-message" role="status" aria-live="polite"></p>
+        <button class="text-button account-mode-toggle" id="entry-mode-toggle" type="button">New here? Create an account</button>
+        <p class="entry-footnote">A real account keeps your name and letters available when you return or switch devices.</p>
+      </section>
+      <section class="entry-card entry-card--profile" id="entry-profile-view" aria-labelledby="profile-setup-title" hidden>
+        <p class="eyebrow"><span class="status-dot"></span> ONE SMALL INTRODUCTION</p>
+        <h1 id="profile-setup-title">What should<br /><em>we call you?</em></h1>
+        <p class="entry-intro">Your name will appear beside your notes in the groups you join.</p>
+        <form id="entry-profile-form">
+          <label class="field-label" for="entry-profile-name">Display name</label>
+          <input class="account-input" id="entry-profile-name" name="displayName" type="text" maxlength="80" autocomplete="nickname" required />
+          <button class="button button--dark button--full" id="entry-profile-submit" type="submit">Save and continue</button>
+        </form>
+        <p class="account-message" id="entry-profile-message" role="status" aria-live="polite"></p>
+      </section>
+      <section class="entry-card entry-card--groups" id="entry-groups-view" aria-labelledby="groups-title" hidden>
+        <div class="entry-account-row">
+          <p class="eyebrow"><span class="status-dot"></span> YOUR POSTBOX</p>
+          <button class="text-button" id="entry-sign-out" type="button">Sign out</button>
+        </div>
+        <h1 id="groups-title">Your postbox</h1>
+        <p class="entry-intro">Create a group for your people, or open one you already belong to.</p>
+        <button class="button button--dark entry-create-group-button" id="entry-open-create-group" type="button">Create a group <span aria-hidden="true">↗</span></button>
+        <div class="entry-groups-list" id="entry-groups-list" aria-live="polite"></div>
+        <div class="entry-empty-state" id="entry-groups-empty" hidden>
+          <span class="nudge-sparkle" aria-hidden="true">✳</span>
+          <h2>Your first little circle starts here.</h2>
+          <p>Groups you create will appear here. Invites and shared letters are the next parts we’ll connect.</p>
+          <button class="text-button" id="entry-create-first-group" type="button">Create your first group <span aria-hidden="true">→</span></button>
+        </div>
+        <form class="entry-create-form" id="entry-create-group-form" hidden>
+          <div class="entry-form-heading">
+            <div>
+              <p class="eyebrow eyebrow--muted">A NEW LITTLE CIRCLE</p>
+              <h2>Create a group</h2>
+            </div>
+            <button class="close-button" id="entry-cancel-create-group" type="button" aria-label="Cancel group creation">×</button>
+          </div>
+          <label class="field-label" for="entry-group-name">Group name</label>
+          <input class="account-input" id="entry-group-name" name="groupName" type="text" maxlength="80" autocomplete="off" placeholder="e.g. The Faraway Club" required />
+          <p class="entry-create-hint">Your group will start with a two-week rhythm. You’ll be its owner.</p>
+          <button class="button button--dark button--full" id="entry-create-group-submit" type="submit">Create group</button>
+        </form>
+        <button class="button button--outline button--full" id="entry-refresh-groups" type="button">Refresh my groups</button>
+        <p class="account-message" id="entry-groups-message" role="status" aria-live="polite"></p>
+      </section>
+      <footer class="entry-footer">Made for the people who still feel close, even from far away.</footer>
+    </div>
     <div class="app-shell">
       <header class="topbar">
         <a class="wordmark" href="#" aria-label="Postmarked home">

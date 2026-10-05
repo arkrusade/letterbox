@@ -17,12 +17,25 @@ Working in the front-end prototype:
 - Browser-local response saving for the current session.
 - Whole question cards open the matching question in the newsletter.
 
+MAIN APP ENTRY
+--------------
+- The plain `/` or `index.html` route is the real Supabase app entry:
+  sign-up/sign-in, email-confirmation guidance, profile setup, and group-list
+  reads for the signed-in account.
+- Signed-in users can create a group; the database transaction creates the
+  group and its owner membership together.
+- `index.html?theme=...`, the theme pages, and `styles.html` are explicitly
+  sample-content design previews. Do not mistake their sample answers for
+  shared database content.
+- Joining groups, opening real group content, and saving shared
+  questions/responses are still not connected.
+
 Prototype limitations:
 - Group members, questions, answers, and profile details are sample data.
 - Newsletter content is still demo data; responses are stored only in the
   current browser and do not yet synchronize across devices or groups.
-- The signed-in landing page is still a single-group demo, not a list of the
-  user's groups.
+- The authenticated landing page lists the user's groups and supports group
+  creation; it cannot yet open a group's real content.
 - Profile button opens the account/auth dialog, but there is no editable profile
   screen; member cards do not yet open member profiles.
 - Group switcher does not yet switch groups or return to a My groups hub.
@@ -45,37 +58,39 @@ IMPLEMENTED FOUNDATION
 - `supabase/README.md` documents project configuration, auth redirects, and
   testing. Authenticated newsletter/group screens remain future work.
 
-PILOT MVP — THREE PEOPLE, ONE GROUP, TEXT QUESTIONS AND RESPONSES
------------------------------------------------------------------
-The pilot is ready when three real accounts (one group owner and two members)
-can complete this end-to-end flow:
+PILOT MVP — THREE AUTHENTICATED USERS, ONE GROUP, PRESET QUESTIONS
+------------------------------------------------------------------
+The pilot is ready when three people can create real accounts, join one group,
+answer the same app-provided questions, and see shared group responses:
 
-[ ] Sign up/sign in as each of the three people; verify email confirmation.
-[ ] Create one group and add the owner and two members through a safe invite or
-    join flow. Do not expose admin/secret credentials in the browser.
-[ ] Create one open newsletter/session for that group, with the agreed 14-day
-    default cadence.
-[ ] Add a shared list of text questions to that session and show the same list
-    to all three members.
+[ ] Verify email/password sign-up, email confirmation/redirect, sign-in,
+    persisted sessions, and sign-out with a real tester account.
+[ ] Collect a display name during sign-up and use the server profile for
+    response attribution; do not treat browser-local data as the account.
+[x] Let an authenticated user create a named group and owner membership
+    atomically; default cadence is 14 days.
+[ ] Safely invite/join the other two authenticated users. Never expose
+    admin/secret credentials or allow arbitrary membership writes.
+[ ] Create one open newsletter/session for the group using the agreed 14-day
+    cadence.
+[ ] Seed/select a fixed, app-provided set of text questions for that session;
+    testers only answer questions in this pilot.
 [ ] Let each member submit and edit their own text responses while the session
-    is open; persist through Supabase, not localStorage.
-[ ] Show progress and group-attributed answers from the database to authorized
-    group members; verify a non-member cannot read the group.
-[ ] Deploy a stable app URL and allow its Auth redirect URL; share that URL
-    and the group invite with the three testers.
-[ ] Test the complete flow on a phone-sized viewport and confirm data survives
-    refresh and a second device/browser session.
+    is open; persist responses in Supabase, not localStorage.
+[ ] Show progress and attributed responses from Supabase to group members;
+    verify a non-member cannot read group content.
+[ ] Deploy a stable app URL, configure Auth redirect URLs, share the app/group
+    invite, and test on phone-sized screens and a second device/browser.
 
-Not required for this first pilot: push/email notifications, phone/contact
-import, image answers, custom group themes, a newsletter archive, account
-deletion, or polished support for many groups. Keep data and queries scoped by
-group so a My groups hub and multiple memberships can be added without
-reworking the core flow.
+Not required for this first pilot: member-authored questions, push/email
+notifications, phone/contact import, image answers, custom group themes, a
+newsletter archive, account deletion, or polished multi-group management.
+Keep data and queries scoped by group so multiple groups can be added later
+without reworking the core flow.
 
 PRIORITY 0 — MAKE THE PROTOTYPE FEEL COMPLETE
 ---------------------------------------------
-[ ] Add a My groups landing page listing every group the user belongs to,
-    with open/create/join actions and an empty state.
+[ ] Add group opening and invitation/join actions to the My groups landing page.
 [ ] Add a usable account settings screen for the current user.
 [ ] Make member cards open a member profile (name, location/time zone, and
     responses in the current and past newsletters).
@@ -93,26 +108,27 @@ PRIORITY 1 — CORE GROUP MVP
     controls (master switch plus newsletter, question-list, and reminder types).
 [ ] Add personal per-group preferences for nickname, answer font, and
     per-category notification overrides.
-[ ] Add shared group settings for membership/roles, newsletter style, weekly
+[ ] Add shared group settings for membership/roles, newsletter style, 14-day
     cadence, time zone, and session schedule.
 [ ] Create groups and invite/join friends with a shareable invite link or code.
 [ ] Store phone numbers for invitations. Ask permission and explain the use.
 [ ] Allow importing contacts only after explicit user permission; let the user
     select who to invite. Do not upload the address book by default.
-[ ] Let a group member manually add one question per newsletter session.
-[ ] Enforce the one-question-per-person rule on the server, not only in the UI.
-[ ] Let the group review/collect its questions and give everyone the same set.
+[ ] Seed/select a shared app-provided question set for each group newsletter.
+[ ] Let the group review/collect its preset questions and give everyone the
+    same set.
 [ ] Let members submit text answers to the shared questions.
 [ ] Publish a newsletter-style view containing each question and the group's
     answers, with author and attribution.
 [ ] Add private-by-default group access and controls for leaving a group,
     removing a member, and deleting an account and its data.
+[ ] (Later) Consider member-authored questions and enforce per-session limits
+    server-side if that product decision is adopted.
 
 PRIORITY 2 — SESSION CADENCE AND ARCHIVE
 ---------------------------------------
 [ ] Make session length configurable per group in the backend; the requested
-    initial cadence is every two weeks (14 days), matching the current schema
-    default.
+    cadence is every two weeks (14 days), matching the current schema default.
 [ ] Decide the group's time zone and the exact session start, close, and
     newsletter publication time; handle members in different time zones.
 [ ] Define what happens when a member has not submitted an answer at close.
@@ -154,8 +170,8 @@ FOUNDATION / RELEASE CHECKLIST
 OPEN PRODUCT DECISIONS
 ---------------------
 - Who can start a group, invite members, edit group settings, or remove members?
-- Can members add questions after the session starts? Can the group edit or vote
-  on submitted questions?
+- Should members ever author questions, or will questions always come from an
+  app-curated prompt library?
 - Are answers visible as soon as they are submitted, or only after publication?
 - Are unanswered questions omitted, shown as blank, or followed up privately?
 - What exact release/close/publication times and group time zone should be used
@@ -168,8 +184,9 @@ OPEN PRODUCT DECISIONS
 
 NEXT SUGGESTED BUILD
 --------------------
-Implement the authenticated group and session screens on top of the existing
-schema. Use a 14-day session as the initial default, enforce one
-member-submitted question per person per session, publish shared questions and
-text answers, then add archive browsing. This establishes the shared product
-behavior before adding contacts, notifications, and image uploads.
+Finish verifying email/password sign-up, confirmation redirects, sign-in, and
+session restoration with a real test account. Then connect a preset question
+set and the text-response composer to Supabase, followed by the one-group
+membership/invite flow. Use the existing 14-day session default. This enables
+the three-person pilot before adding self-service question authoring, contacts,
+notifications, and image uploads.

@@ -1,6 +1,6 @@
 const availableThemes = ["classic", "coastal", "postcard", "field-notes"];
 const themeDetails = {
-  classic: { name: "Postmarked" },
+  classic: { name: "A little closer" },
   coastal: { name: "The Coastline" },
   postcard: { name: "Postcards" },
   "field-notes": { name: "Field Notes" },
@@ -21,8 +21,9 @@ const requestedTheme = new URLSearchParams(window.location.search).get("theme");
 if (availableThemes.includes(requestedTheme)) {
   document.body.dataset.theme = requestedTheme;
 }
-document.title = `${themeDetails[document.body.dataset.theme]?.name || "Postmarked"} — a little closer`;
+document.title = `Postmarked — ${themeDetails[document.body.dataset.theme]?.name || "A little closer"}`;
 
+if (window.LETTERBOX_PREVIEW) {
 function getCurrentWeek() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -427,3 +428,4 @@ window.addEventListener("message", (event) => {
 renderHome();
 renderLetter();
 sendGalleryMessage({ type: "preview-ready", view: activeView, progress: 0 });
+}
