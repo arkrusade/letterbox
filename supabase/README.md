@@ -56,11 +56,11 @@ Creating Auth users automatically creates their profile. Group owners can start
 newsletters and add members; invite links and phone-contact import are not
 implemented yet.
 
-The follow-on `create_group(text)` migration exposes an authenticated,
-row-level-security-checked operation that creates a group and its creator's
-owner membership atomically. It validates the group name and does not grant
-anonymous access. It does not create the group's first newsletter, questions,
-or invitations.
+The `create_group(text)` database function uses a restricted definer
+transaction to create a group and its creator's owner membership atomically.
+It validates the group name, derives ownership from the authenticated session,
+uses an empty search path, and grants execution only to authenticated users.
+It does not create the group's first newsletter, questions, or invitations.
 
 ## Browser authentication and profile permission check
 

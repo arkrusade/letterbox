@@ -245,10 +245,12 @@ the many-to-many membership relation. It does **not** yet store:
 - per-group member notification overrides;
 - the group's chosen newsletter theme.
 
-The follow-on `create_group(text)` database function runs as the authenticated
-user and creates the group and owner membership in one transaction, subject to
-the existing RLS policies. It does not create a newsletter, seed prompts, or
-invite other members; those are separate pilot steps.
+The `create_group(text)` database function uses a restricted `SECURITY DEFINER`
+transaction to create the group and owner membership together. It derives the
+owner only from `auth.uid()`, validates the group name, fixes its search path,
+and grants execution only to authenticated users. It does not create a
+newsletter, seed prompts, or invite other members; those are separate pilot
+steps.
 
 The applied `cadence_days` default of 14 matches the agreed pilot cadence;
 configurable schedule controls and automatic session creation still need app
