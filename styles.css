@@ -490,6 +490,26 @@ h1 em, h2 em { color: var(--accent); font-weight: 500; }
 .entry-group-card { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fffefa; }
 .entry-group-card h2 { margin: 0; font: 500 19px/1.3 var(--serif); }
 .entry-group-card p { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.entry-group-card .entry-invite-generate { margin-top: 13px; }
+.entry-group-card .entry-invite-hint { margin-top: 6px; }
+.entry-invite-result { margin-top: 10px; }
+.entry-invite-result .account-input { margin-top: 0; font-size: 10px; }
+.entry-invite-result .field-label { display: block; margin-top: 12px; }
+.entry-invite-result .button { margin-top: 9px; }
+.entry-join-code-form { margin: 18px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fffefa; }
+.entry-join-code-form .field-label { margin: 0 0 8px; }
+.entry-join-code-row { display: flex; align-items: stretch; gap: 8px; }
+.entry-join-code-row .account-input { min-width: 0; margin: 0; }
+.entry-join-code-row .button { flex: 0 0 auto; padding: 0 13px; }
+.entry-join-code-hint { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.entry-join-code-form .account-message { margin-bottom: 0; }
+.entry-invite-card { margin: 20px 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #edf0e7; }
+.entry-invite-card .eyebrow { margin: 0 0 7px; }
+.entry-invite-card h2 { margin: 0; font: 500 21px/1.3 var(--serif); }
+.entry-invite-card > p:not(.eyebrow):not(.account-message) { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.entry-invite-card .button--full { margin-top: 16px; }
+.entry-invite-card > .text-button { display: block; margin: 12px auto 0; }
+.entry-invite-auth-note { padding: 12px; border-radius: 10px; background: #edf0e7; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .entry-empty-state { margin: 20px 0; padding: 20px; border-radius: 14px; background: #edf0e7; }
 .entry-empty-state h2 { margin: 8px 0; font: 500 20px/1.3 var(--serif); }
 .entry-empty-state p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
@@ -506,6 +526,8 @@ html.preview-mode .entry-shell { display: none; }
   .entry-shell { padding: 0 18px 24px; }
   .entry-header { height: 64px; }
   .entry-card { margin-top: 48px; border-radius: 16px; }
+  .entry-join-code-row { flex-direction: column; }
+  .entry-join-code-row .button { min-height: 42px; }
 }
 
 @media (min-width: 1000px) {

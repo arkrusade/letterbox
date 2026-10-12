@@ -52,15 +52,21 @@ The current schema includes:
 - Row Level Security policies that restrict data to group members and allow
   edits only while a newsletter is open.
 
-Creating Auth users automatically creates their profile. Group owners can start
-newsletters and add members; invite links and phone-contact import are not
+Creating Auth users automatically creates their profile. Group owners can
+create groups and reusable invite links; phone-contact import is not
 implemented yet.
 
 The `create_group(text)` database function uses a restricted definer
 transaction to create a group and its creator's owner membership atomically.
 It validates the group name, derives ownership from the authenticated session,
 uses an empty search path, and grants execution only to authenticated users.
-It does not create the group's first newsletter, questions, or invitations.
+
+`group_invites` stores only hashes of random link tokens and six-letter codes
+and has no direct client grants. Group owners can create or replace a reusable
+invite link and code. The link remains valid until replaced; the code expires
+after seven days. Code lookups are limited to ten attempts per authenticated
+user in 15 minutes. Authenticated users can preview and explicitly accept by
+link or code, and the database adds only the current `auth.uid()` as a member.
 
 ## Browser authentication and profile permission check
 
@@ -87,15 +93,64 @@ To configure authentication:
    update trigger refreshes `updated_at`; the profile's visible data is
    unchanged.
 
-The newsletter and group screens still use sample content. This check validates
-the Auth session and the profile RLS policies only; it does not create sample
-groups, members, questions, or answers.
+The newsletter and group-letter screens still use sample content. The
+authenticated postbox supports real groups and invite membership; question
+and response content is not yet connected.
 
 The project currently reports email sign-ups enabled and email auto-confirm
 disabled: new users must follow the confirmation email before they can sign in.
 The browser integration and Auth endpoint are configured, but complete the
 sign-up → confirmation → sign-in → profile-check flow with a real tester
 account before inviting the pilot group.
+
+## Manage isolated test users
+
+The repository includes a Node CLI for creating, listing/searching, and deleting
+Supabase Auth test users. It uses Auth Admin credentials only in a local
+server-side process; never add an admin/secret key to `supabase-config.js`,
+browser code, GitHub Pages, or a committed environment file. Use a dedicated
+local Supabase stack or a separate hosted test project, not the pilot or
+production project.
+
+Install dependencies and run the unit tests:
+
+```sh
+npm install
+npm test
+```
+
+Configure the CLI in the current shell with the test project's URL and
+service-role/secret key:
+
+```sh
+export POSTMARKED_TEST_SUPABASE_URL=http://127.0.0.1:54321
+export POSTMARKED_TEST_SUPABASE_ADMIN_KEY='your-local-test-admin-key'
+```
+
+Local URLs are allowed by default. Hosted projects are blocked unless you
+deliberately enable them in the current shell:
+
+```sh
+export POSTMARKED_TEST_SUPABASE_URL='https://your-dedicated-test-project.supabase.co'
+export POSTMARKED_TEST_SUPABASE_ALLOW_REMOTE=I_UNDERSTAND
+```
+
+The Supabase client currently requires Node 22 or newer to run the CLI.
+
+Then run:
+
+```sh
+npm run test-users -- create --name "Test Person" # generates email and password
+npm run test-users -- create tester@example.com --name "Test Person"
+npm run test-users -- list
+npm run test-users -- list tester@example.com
+npm run test-users -- delete tester@example.com --confirm
+```
+
+Created users are email-confirmed and tagged in Auth `app_metadata`. Listing
+and deletion only operate on users with this tag; deletion also requires the
+explicit `--confirm` flag. Generated passwords are printed once at creation.
+The CLI and unit tests do not run against any project automatically.
 
 ## Local development
 
@@ -105,7 +160,8 @@ use `db reset` as a way to apply migrations to the linked hosted project.
 
 ## Verify after applying
 
-In the linked database, `supabase migration list --linked` should show the
-initial migration as applied. The Supabase Table Editor should show the six
-application tables in the `public` schema. Test signup, group creation, and
-membership with authenticated users before connecting real app screens.
+In the linked database, `supabase migration list --linked` should show all
+local migrations as applied. The Supabase Table Editor should show the
+application tables in the `public` schema. Test signup, group creation, invite
+acceptance, and membership with authenticated users before connecting real
+newsletter screens.

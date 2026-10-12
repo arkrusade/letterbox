@@ -1,8 +1,14 @@
 {
+  "scripts": {
+    "test": "node test/test-users.test.cjs",
+    "test-users": "node scripts/manage-test-users.cjs"
+  },
   "dependencies": {
-    "@supabase/server": "^1.8.0"
+    "@supabase/server": "^1.8.0",
+    "@supabase/supabase-js": "^2.117.2"
   },
   "devDependencies": {
-    "supabase": "^2.119.0"
+    "supabase": "^2.119.0",
+    "uvu": "^0.5.6"
   }
 }

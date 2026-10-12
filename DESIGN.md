@@ -53,8 +53,10 @@ flowchart TD
 The current `groups` and `group_members` schema represents many groups per
 user: `group_members` has one row per `(group_id, user_id)`. The authenticated
 entry reads and renders those memberships and lets a signed-in user create a
-group; the visual group-home mockup remains a selected-group screen, not the
-signed-in landing page.
+group. Owners can generate a reusable invite link and short code; invitees can
+paste the link or enter the code after authenticating and explicitly accept.
+The visual group-home mockup remains a selected-group screen, not the signed-in
+landing page.
 
 ### Three-person pilot flow
 
@@ -82,6 +84,9 @@ flowchart TD
   P --> G[Load memberships from Supabase]
   G -->|create group| CG[Create group and owner membership]
   CG --> G
+  G -->|owner creates invite| IL[Share reusable invite link or code]
+  IL -->|open link or enter code| A
+  G -->|preview and accept invite| G
   G -->|membership exists| N[Group listed; group letter UI pending]
   S[Style gallery] --> C[Coastal preview]
   S --> PC[Postcards preview]
@@ -93,14 +98,15 @@ Plain `/` or `index.html` is the authenticated app entry. The visual group and
 newsletter prototype is isolated behind `?theme=...` and is used by the design
 gallery and theme preview pages. The authenticated entry supports
 sign-up/sign-in, profile completion, reading memberships, and creating a group
-with owner membership. It does not yet accept invites or open real group
-newsletters.
+with owner membership. Owners can create/replace invite links and codes, and
+signed-in users can explicitly accept them. The app does not yet open real
+group newsletters.
 
 ## Existing pages and destinations
 
 | Page / URL | Purpose and current behavior | Links in / links out | Status |
 | --- | --- | --- | --- |
-| `index.html` | Real app entry: email/password sign-up/sign-in, profile setup, current user's group memberships, and group creation. Add `?theme=classic`, `?theme=coastal`, `?theme=postcard`, or `?theme=field-notes` for the isolated sample-content prototype. | Authenticated entry loads profile/groups and creates a group with owner membership. The theme prototype has in-page Home/Our letter, prompt jumps, composer, and Styles link to the gallery. | Auth/profile/group-list and group creation implemented; invites and real newsletter views are pending. |
+| `index.html` | Real app entry: email/password sign-up/sign-in, profile setup, current user's group memberships, group creation, and invite acceptance. Add `?theme=classic`, `?theme=coastal`, `?theme=postcard`, or `?theme=field-notes` for the isolated sample-content prototype. | Authenticated entry loads profile/groups, creates groups, and lets owners create/replace reusable invite links/codes; invitees preview and explicitly accept by link or code. | Auth/profile/group-list, group creation, and invite flow implemented; real newsletter views are pending. |
 | `styles.html` | Design comparison of three full-content themes. Each live preview is an `index.html?theme=...` iframe. Scroll position and Home/Our letter/question navigation are synchronized between previews. | Wordmark goes to `index.html`; Postcard formats goes to `postcard-formats.html`; each card opens `coastal.html`, `postcard.html`, or `field-notes.html`. | Implemented design study. |
 | `coastal.html` | Standalone Coastline presentation; frames `index.html?theme=coastal`. | The embedded app's Styles link exits the frame to `styles.html`. | Implemented theme wrapper. |
 | `postcard.html` | Standalone Postcards presentation; frames `index.html?theme=postcard`. | The embedded app's Styles link exits the frame to `styles.html`. | Implemented theme wrapper. |
@@ -126,10 +132,10 @@ uses the Supabase project URL and publishable key from `supabase-config.js`.
 ### Navigation and completeness notes
 
 - The main app handles sign-up, sign-in, sign-out, profile setup, group
-  membership reads, and authenticated group creation. Group/newsletter
-  interactions currently exist only in the explicitly marked visual prototype.
-- On the main app entry, memberships and group creation use Supabase. Invite
-  acceptance and group/newsletter screens are not connected yet.
+  membership reads, group creation, and invite links/acceptance. Real
+  newsletter interactions exist only in the explicitly marked visual prototype.
+- On the main app entry, memberships, group creation, and invite acceptance
+  use Supabase. Real group/newsletter screens are not connected yet.
 - Newsletter answers and group/member content in `?theme=...` previews are
   sample data. Preview responses and handwriting preferences are browser-local.
 - The preview profile button opens account/auth, not a profile editor. The
@@ -159,7 +165,7 @@ success states.
 | P03 | Profile setup | Choose account name and optional contact/location details. | First authenticated session. | Save profile; go to My groups or invited group. | Pilot |
 | P04 | My groups hub | List every group the signed-in user belongs to, plus activity summaries. | Authenticated launch; group switcher. | Open/switch group; create group; join by invite; open account settings. | Yes |
 | P05 | Create group | Create a private group with an 80-character name; its creator becomes owner and cadence defaults to 14 days. | My groups. | Create group; return to the group list. | Implemented |
-| P06 | Join group / accept invite | Join a group using a validated shareable invite link or code. | My groups or invite link. | Sign in if needed; validate invite; accept; open that group's home. | Pilot |
+| P06 | Join group / accept invite | Join using an owner-generated reusable link or six-letter code. Links stay active until replaced; codes expire after seven days. | My groups, invite code, or invite link. | Sign in if needed; preview invite; explicitly accept; return to My groups. | Implemented |
 | P07 | Group home | Show the selected group's open session, shared prompts, response progress, and members. | My groups or a group deep link. | Answer prompt; read newsletter; open archive, group settings, or personal group preferences. | Yes |
 | P08 | Session questions | Show the fixed app-provided question set selected for the group session. | Selected group home/session card. | Read the shared prompts; answer them. Question authoring is out of pilot scope. | Pilot |
 | P09 | Answer composer | Submit a response to a shared question; start with text. | Selected group home prompt or newsletter. | Save/edit allowed answer; return to this group's session. | Yes |
@@ -249,6 +255,16 @@ The `create_group(text)` database function uses a restricted `SECURITY DEFINER`
 transaction to create the group and owner membership together. It derives the
 owner only from `auth.uid()`, validates the group name, fixes its search path,
 and grants execution only to authenticated users. It does not create a
+
+The invite functions also use restricted definer transactions. Owners can
+replace a group's reusable invite link and six-letter alphabetic code. The link
+token is stored as a SHA-256 hash; the short code is stored as a bcrypt hash
+and expires seven days after creation. Codes are rate-limited to ten attempts
+per signed-in user per 15 minutes. The link stays active until replaced, while
+the code expires on its own. Authenticated invitees can preview the group and
+explicitly accept by following the link or entering the code; the database
+associates membership with `auth.uid()`. These functions never grant direct
+access to the invite table. It does not create a
 newsletter, seed prompts, or invite other members; those are separate pilot
 steps.
 

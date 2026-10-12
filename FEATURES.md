@@ -24,10 +24,13 @@ MAIN APP ENTRY
   reads for the signed-in account.
 - Signed-in users can create a group; the database transaction creates the
   group and its owner membership together.
+- Group owners can create or replace a reusable invite link and six-letter
+  code that expires after seven days. Tokens/codes are stored as hashes;
+  invitees sign in, preview the group, and explicitly accept by link or code.
 - `index.html?theme=...`, the theme pages, and `styles.html` are explicitly
   sample-content design previews. Do not mistake their sample answers for
   shared database content.
-- Joining groups, opening real group content, and saving shared
+- Opening real group content and saving shared
   questions/responses are still not connected.
 
 Prototype limitations:
@@ -69,8 +72,10 @@ answer the same app-provided questions, and see shared group responses:
     response attribution; do not treat browser-local data as the account.
 [x] Let an authenticated user create a named group and owner membership
     atomically; default cadence is 14 days.
-[ ] Safely invite/join the other two authenticated users. Never expose
-    admin/secret credentials or allow arbitrary membership writes.
+[x] Safely create/replace invite links and seven-day, six-letter codes and
+    accept them after authentication; invitees cannot add arbitrary memberships.
+[ ] Use invite links to join the other two authenticated users and verify the
+    sign-up/email-confirmation flow preserves the invitation.
 [ ] Create one open newsletter/session for the group using the agreed 14-day
     cadence.
 [ ] Seed/select a fixed, app-provided set of text questions for that session;
@@ -110,7 +115,7 @@ PRIORITY 1 — CORE GROUP MVP
     per-category notification overrides.
 [ ] Add shared group settings for membership/roles, newsletter style, 14-day
     cadence, time zone, and session schedule.
-[ ] Create groups and invite/join friends with a shareable invite link or code.
+[x] Create groups and invite/join friends with a reusable invite link or code.
 [ ] Store phone numbers for invitations. Ask permission and explain the use.
 [ ] Allow importing contacts only after explicit user permission; let the user
     select who to invite. Do not upload the address book by default.

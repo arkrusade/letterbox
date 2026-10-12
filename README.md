@@ -4,8 +4,9 @@ A mobile-first prototype for keeping in touch with friends around the world
 through shared reflection prompts and a newsletter-style collection of answers.
 The root app entry uses Supabase email/password authentication, loads the
 signed-in user's profile and group memberships, and lets authenticated users
-create groups. Invitations and shared newsletter responses are still being
-connected. Visual sample content lives in the style previews, not in the
+create groups and invite members with reusable links or manually entered
+six-letter codes (valid for seven days). Shared newsletter responses are still
+being connected. Visual sample content lives in the style previews, not in the
 authenticated app flow.
 
 ## Preview
@@ -13,7 +14,7 @@ authenticated app flow.
 The main app is the starting point for account setup:
 
 - **Main app:** [index.html](./index.html) — sign up/sign in, set a display
-  name, view your groups, and create a group.
+  name, view your groups, create a group, and accept invites.
 
 The style gallery is a separate design preview. It shows all three visual
 directions side by side, with live previews that synchronize scrolling,

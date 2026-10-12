@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f8f5ef" />
+    <meta name="referrer" content="no-referrer" />
     <meta
       name="description"
       content="A little letter from your people, wherever they are."
@@ -51,6 +52,7 @@
           <button class="button button--dark button--full" id="entry-auth-submit" type="submit">Sign in</button>
         </form>
         <p class="account-message" id="entry-auth-message" role="status" aria-live="polite"></p>
+        <p class="entry-invite-auth-note" id="entry-invite-auth-note" hidden>You’ve been invited to a group. Sign in or create an account to see the invitation.</p>
         <button class="text-button account-mode-toggle" id="entry-mode-toggle" type="button">New here? Create an account</button>
         <p class="entry-footnote">A real account keeps your name and letters available when you return or switch devices.</p>
       </section>
@@ -73,11 +75,28 @@
         <h1 id="groups-title">Your postbox</h1>
         <p class="entry-intro">Create a group for your people, or open one you already belong to.</p>
         <button class="button button--dark entry-create-group-button" id="entry-open-create-group" type="button">Create a group <span aria-hidden="true">↗</span></button>
+        <form class="entry-join-code-form" id="entry-join-code-form">
+          <label class="field-label" for="entry-join-code">Have an invite code?</label>
+          <div class="entry-join-code-row">
+            <input class="account-input" id="entry-join-code" name="inviteCode" type="text" maxlength="6" pattern="[A-Za-z]{6}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDEF" required />
+            <button class="button button--outline" id="entry-check-invite-code" type="submit">Check code</button>
+          </div>
+          <p class="entry-join-code-hint">Ask a group owner for a six-letter code. Codes expire after seven days.</p>
+          <p class="account-message" id="entry-join-code-message" role="status" aria-live="polite"></p>
+        </form>
+        <section class="entry-invite-card" id="entry-invite-card" aria-labelledby="entry-invite-title" hidden>
+          <p class="eyebrow eyebrow--muted">A NOTE FROM A FRIEND</p>
+          <h2 id="entry-invite-title">You’re invited</h2>
+          <p id="entry-invite-description">Join this group to share notes and letters together.</p>
+          <button class="button button--dark button--full" id="entry-accept-invite" type="button">Join this group</button>
+          <button class="text-button" id="entry-dismiss-invite" type="button">Not now</button>
+          <p class="account-message" id="entry-invite-message" role="status" aria-live="polite"></p>
+        </section>
         <div class="entry-groups-list" id="entry-groups-list" aria-live="polite"></div>
         <div class="entry-empty-state" id="entry-groups-empty" hidden>
           <span class="nudge-sparkle" aria-hidden="true">✳</span>
           <h2>Your first little circle starts here.</h2>
-          <p>Groups you create will appear here. Invites and shared letters are the next parts we’ll connect.</p>
+          <p>Groups you create will appear here. Invite friends with a link or a six-letter code.</p>
           <button class="text-button" id="entry-create-first-group" type="button">Create your first group <span aria-hidden="true">→</span></button>
         </div>
         <form class="entry-create-form" id="entry-create-group-form" hidden>

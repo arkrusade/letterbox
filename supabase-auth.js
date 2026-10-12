@@ -26,13 +26,58 @@ const entryProfileMessage = document.querySelector("#entry-profile-message");
 const entryGroupsList = document.querySelector("#entry-groups-list");
 const entryGroupsEmpty = document.querySelector("#entry-groups-empty");
 const entryGroupsMessage = document.querySelector("#entry-groups-message");
+const entryJoinCodeForm = document.querySelector("#entry-join-code-form");
+const entryJoinCodeInput = document.querySelector("#entry-join-code");
+const entryJoinCodeSubmit = document.querySelector("#entry-check-invite-code");
+const entryJoinCodeMessage = document.querySelector("#entry-join-code-message");
+const entryInviteAuthNote = document.querySelector("#entry-invite-auth-note");
+const entryInviteCard = document.querySelector("#entry-invite-card");
+const entryInviteTitle = document.querySelector("#entry-invite-title");
+const entryInviteDescription = document.querySelector("#entry-invite-description");
+const entryAcceptInvite = document.querySelector("#entry-accept-invite");
+const entryInviteMessage = document.querySelector("#entry-invite-message");
 const entryCreateGroupForm = document.querySelector("#entry-create-group-form");
 const entryGroupName = document.querySelector("#entry-group-name");
 const entryCreateGroupSubmit = document.querySelector("#entry-create-group-submit");
 const entryRefreshGroups = document.querySelector("#entry-refresh-groups");
+const pendingInviteStorageKey = "postmarked-pending-group-invite";
+const initialUrl = new URL(window.location.href);
+let pendingInviteToken = initialUrl.searchParams.get("invite");
+if (pendingInviteToken) {
+  try {
+    sessionStorage.setItem(pendingInviteStorageKey, pendingInviteToken);
+  } catch (error) {
+    console.warn("Could not persist the pending group invite in this tab.", error);
+  }
+} else {
+  try {
+    pendingInviteToken = sessionStorage.getItem(pendingInviteStorageKey);
+  } catch (error) {
+    console.warn("Could not restore the pending group invite in this tab.", error);
+  }
+}
+if (initialUrl.searchParams.has("invite")) {
+  initialUrl.searchParams.delete("invite");
+  window.history.replaceState({}, "", `${initialUrl.pathname}${initialUrl.search}${initialUrl.hash}`);
+}
 let supabaseClient;
 let authMode = "sign-in";
 let entryRequestId = 0;
+
+function clearPendingInvite() {
+  pendingInviteToken = null;
+  try {
+    sessionStorage.removeItem(pendingInviteStorageKey);
+  } catch (error) {
+    console.warn("Could not clear the pending group invite from this tab.", error);
+  }
+}
+
+function authRedirectUrl() {
+  const redirectUrl = new URL(window.location.href);
+  if (pendingInviteToken) redirectUrl.searchParams.set("invite", pendingInviteToken);
+  return redirectUrl.toString();
+}
 
 function setMessage(message, state = "") {
   accountMessage.textContent = message;
@@ -97,7 +142,7 @@ async function loadEntryGroups(userId, requestId) {
   try {
     const { data, error } = await supabaseClient
       .from("group_members")
-      .select("group_id, groups(name, cadence_days)")
+      .select("group_id, role, groups(name, cadence_days)")
       .eq("user_id", userId);
     if (requestId !== entryRequestId) return false;
     if (error) throw error;
@@ -105,7 +150,7 @@ async function loadEntryGroups(userId, requestId) {
     const groups = (data || [])
       .map((membership) => {
         const group = Array.isArray(membership.groups) ? membership.groups[0] : membership.groups;
-        return group ? { ...group, id: membership.group_id } : null;
+        return group ? { ...group, id: membership.group_id, role: membership.role } : null;
       })
       .filter(Boolean);
     if (!groups.length) {
@@ -120,8 +165,113 @@ async function loadEntryGroups(userId, requestId) {
       const heading = document.createElement("h2");
       heading.textContent = group.name;
       const detail = document.createElement("p");
-      detail.textContent = `A little letter every ${group.cadence_days} days. Inviting friends and opening group letters are next.`;
+      detail.textContent = `A little letter every ${group.cadence_days} days. Group letters are coming soon.`;
       card.append(heading, detail);
+      if (group.role === "owner") {
+        const inviteButton = document.createElement("button");
+        inviteButton.className = "text-button entry-invite-generate";
+        inviteButton.type = "button";
+        inviteButton.textContent = "Create or replace invite";
+        const inviteHint = document.createElement("p");
+        inviteHint.className = "entry-invite-hint";
+        inviteHint.textContent = "Links stay active until replaced. The six-letter code expires after seven days.";
+        const inviteResult = document.createElement("div");
+        inviteResult.className = "entry-invite-result";
+        inviteResult.hidden = true;
+        const inviteInput = document.createElement("input");
+        inviteInput.className = "account-input";
+        inviteInput.type = "url";
+        inviteInput.readOnly = true;
+        inviteInput.setAttribute("aria-label", `Invite link for ${group.name}`);
+        const codeLabel = document.createElement("label");
+        codeLabel.className = "field-label";
+        codeLabel.textContent = "Invite code";
+        const inviteCodeInput = document.createElement("input");
+        inviteCodeInput.className = "account-input";
+        inviteCodeInput.id = `entry-invite-code-${group.id}`;
+        inviteCodeInput.type = "text";
+        inviteCodeInput.maxLength = 6;
+        inviteCodeInput.pattern = "[A-Z]{6}";
+        inviteCodeInput.readOnly = true;
+        inviteCodeInput.autocomplete = "off";
+        inviteCodeInput.spellcheck = false;
+        inviteCodeInput.setAttribute("aria-label", `Invite code for ${group.name}`);
+        codeLabel.htmlFor = inviteCodeInput.id;
+        const copyButton = document.createElement("button");
+        copyButton.className = "button button--outline button--full";
+        copyButton.type = "button";
+        copyButton.textContent = "Copy invite link";
+        const copyCodeButton = document.createElement("button");
+        copyCodeButton.className = "button button--outline button--full";
+        copyCodeButton.type = "button";
+        copyCodeButton.textContent = "Copy invite code";
+        const inviteMessage = document.createElement("p");
+        inviteMessage.className = "account-message";
+        inviteMessage.setAttribute("role", "status");
+        inviteMessage.setAttribute("aria-live", "polite");
+        inviteResult.append(inviteInput, copyButton, codeLabel, inviteCodeInput, copyCodeButton, inviteMessage);
+        card.append(inviteButton, inviteHint, inviteResult);
+        inviteButton.addEventListener("click", async () => {
+          inviteButton.disabled = true;
+          inviteResult.hidden = true;
+          inviteInput.value = "";
+          inviteCodeInput.value = "";
+          setEntryMessage(inviteMessage, "Creating a fresh invite link…");
+          try {
+            const { data: invite, error: inviteError } = await supabaseClient.rpc("create_group_invite", {
+              target_group_id: group.id,
+            });
+            if (inviteError) throw inviteError;
+            if (
+              !invite ||
+              typeof invite.invite_token !== "string" ||
+              !/^[A-Za-z0-9_-]{22}$/.test(invite.invite_token) ||
+              typeof invite.invite_code !== "string" ||
+              !/^[A-Z]{6}$/.test(invite.invite_code) ||
+              typeof invite.code_expires_at !== "string"
+            ) {
+              throw new Error("The server returned an invalid invite link. Please try again.");
+            }
+            const inviteUrl = new URL(window.location.pathname, window.location.origin);
+            inviteUrl.searchParams.set("invite", invite.invite_token);
+            inviteInput.value = inviteUrl.toString();
+            inviteCodeInput.value = invite.invite_code;
+            inviteResult.hidden = false;
+            const codeExpiry = new Date(invite.code_expires_at).toLocaleString();
+            setEntryMessage(inviteMessage, `Invite link is ready. The code expires ${codeExpiry}; replacing the invite invalidates both.`, "success");
+          } catch (inviteError) {
+            console.error("Could not create a group invite link.", inviteError);
+            setEntryMessage(inviteMessage, inviteError.message || "Could not create an invite link. Please try again.", "error");
+            inviteResult.hidden = false;
+          } finally {
+            inviteButton.disabled = false;
+          }
+        });
+        copyButton.addEventListener("click", async () => {
+          if (!inviteInput.value) return;
+          inviteInput.focus();
+          inviteInput.select();
+          try {
+            await navigator.clipboard.writeText(inviteInput.value);
+            setEntryMessage(inviteMessage, "Invite link copied. Send it to your friends.", "success");
+          } catch (copyError) {
+            console.error("Could not copy the group invite link.", copyError);
+            setEntryMessage(inviteMessage, "Select the link above and copy it to share.", "error");
+          }
+        });
+        copyCodeButton.addEventListener("click", async () => {
+          if (!inviteCodeInput.value) return;
+          inviteCodeInput.focus();
+          inviteCodeInput.select();
+          try {
+            await navigator.clipboard.writeText(inviteCodeInput.value);
+            setEntryMessage(inviteMessage, "Invite code copied. Send it to your friends.", "success");
+          } catch (copyError) {
+            console.error("Could not copy the group invite code.", copyError);
+            setEntryMessage(inviteMessage, "Select the code above and copy it to share.", "error");
+          }
+        });
+      }
       entryGroupsList.append(card);
     }
     setEntryMessage(entryGroupsMessage, "");
@@ -142,6 +292,59 @@ function openCreateGroupForm() {
   entryGroupName.focus();
 }
 
+async function showPendingInvite(requestId) {
+  if (!pendingInviteToken) {
+    entryInviteCard.hidden = true;
+    entryInviteAuthNote.hidden = true;
+    return;
+  }
+
+  entryInviteAuthNote.hidden = false;
+  entryInviteCard.hidden = false;
+  entryInviteTitle.textContent = "Checking your invitation…";
+  entryInviteDescription.textContent = "";
+  entryAcceptInvite.hidden = true;
+  entryAcceptInvite.disabled = true;
+  setEntryMessage(entryInviteMessage, "");
+  try {
+    const { data, error } = await supabaseClient.rpc("preview_group_invite", {
+      invite_token: pendingInviteToken,
+    });
+    if (requestId !== entryRequestId) return;
+    if (error) throw error;
+    const invite = Array.isArray(data) ? data[0] : data;
+    if (!invite?.group_id || !invite.group_name) {
+      const isCode = /^[A-Za-z]{6}$/.test(pendingInviteToken);
+      clearPendingInvite();
+      entryInviteTitle.textContent = isCode ? "Invite code unavailable" : "Invite link unavailable";
+      setEntryMessage(
+        entryInviteMessage,
+        isCode
+          ? "This code is invalid or expired. Ask the group owner for a new six-letter code."
+          : "This invite link is invalid or has been replaced. Ask the group owner for a fresh link.",
+        "error",
+      );
+      return;
+    }
+    entryInviteTitle.textContent = `Join ${invite.group_name}?`;
+    entryInviteDescription.textContent = "You’ll join this group and see it in your postbox.";
+    entryAcceptInvite.hidden = false;
+    entryAcceptInvite.disabled = false;
+  } catch (error) {
+    if (requestId !== entryRequestId) return;
+    console.error("Could not check the group invite.", error);
+    const message = error?.message?.includes("Too many invite code attempts")
+      ? error.message
+      : "We couldn’t check this invite. Check your connection and try again.";
+    setEntryMessage(entryInviteMessage, message, "error");
+  }
+}
+
+function parseInviteCode(value) {
+  const trimmed = value.trim();
+  return /^[A-Za-z]{6}$/.test(trimmed) ? trimmed.toUpperCase() : null;
+}
+
 async function renderEntrySession(session) {
   if (window.LETTERBOX_PREVIEW || !entryShell) return;
   entryShell.hidden = false;
@@ -149,6 +352,7 @@ async function renderEntrySession(session) {
   const requestId = ++entryRequestId;
   if (!session?.user) {
     showEntryView("auth");
+    entryInviteAuthNote.hidden = !pendingInviteToken;
     return;
   }
 
@@ -178,6 +382,8 @@ async function renderEntrySession(session) {
     return;
   }
   try {
+    await showPendingInvite(requestId);
+    if (requestId !== entryRequestId) return;
     await loadEntryGroups(session.user.id, requestId);
   } catch (loadError) {
     if (requestId !== entryRequestId) return;
@@ -225,7 +431,7 @@ entryAuthForm.addEventListener("submit", async (event) => {
         password,
         options: {
           data: { display_name: displayName },
-          emailRedirectTo: window.location.href,
+          emailRedirectTo: authRedirectUrl(),
         },
       });
       if (error) throw error;
@@ -272,6 +478,9 @@ entryProfileForm.addEventListener("submit", async (event) => {
       throw new Error("The profile update did not match the signed-in user.");
     }
     await loadEntryGroups(userResult.user.id, entryRequestId);
+    if (pendingInviteToken) {
+      await showPendingInvite(entryRequestId);
+    }
   } catch (error) {
     console.error("Could not save the user's display name.", error);
     setEntryMessage(entryProfileMessage, error.message || "We couldn’t save your name. Please try again.", "error");
@@ -333,7 +542,7 @@ entryCreateGroupForm.addEventListener("submit", async (event) => {
     if (!userResult.user) throw new Error("Group created, but your session is no longer active. Sign in and refresh your groups.");
     const groupsLoaded = await loadEntryGroups(userResult.user.id, ++entryRequestId);
     if (!groupsLoaded) throw new Error("Your group was created, but the group list could not be refreshed.");
-    setEntryMessage(entryGroupsMessage, "Your group is ready. Invite links and shared letters are the next steps.", "success");
+    setEntryMessage(entryGroupsMessage, "Your group is ready. Create an invite link or code to bring friends in.", "success");
   } catch (error) {
     if (created) {
       console.error("Group was created, but the post-create refresh failed.", error);
@@ -345,6 +554,74 @@ entryCreateGroupForm.addEventListener("submit", async (event) => {
   } finally {
     entryCreateGroupSubmit.disabled = false;
   }
+});
+entryAcceptInvite.addEventListener("click", async () => {
+  if (!pendingInviteToken || !supabaseClient) return;
+  entryAcceptInvite.disabled = true;
+  setEntryMessage(entryInviteMessage, "Joining your group…");
+  let joinedGroup = null;
+  try {
+    const { data, error } = await supabaseClient.rpc("join_group_with_invite", {
+      invite_token: pendingInviteToken,
+    });
+    if (error) throw error;
+    joinedGroup = Array.isArray(data) ? data[0] : data;
+    if (!joinedGroup?.group_id) throw new Error("The group join was not confirmed. Please refresh your postbox.");
+    clearPendingInvite();
+    entryJoinCodeInput.value = "";
+    entryInviteCard.hidden = true;
+    entryInviteAuthNote.hidden = true;
+    const { data: userResult, error: userError } = await supabaseClient.auth.getUser();
+    if (userError) throw userError;
+    if (!userResult.user) throw new Error("You joined the group, but your session ended. Sign in and refresh your postbox.");
+    const groupsLoaded = await loadEntryGroups(userResult.user.id, ++entryRequestId);
+    if (!groupsLoaded) throw new Error("You joined the group, but your postbox could not be refreshed.");
+    setEntryMessage(entryGroupsMessage, `You joined ${joinedGroup.group_name}.`, "success");
+  } catch (error) {
+    console.error("Could not accept the group invite.", error);
+    if (joinedGroup) {
+      setEntryMessage(entryGroupsMessage, "You joined the group, but your postbox could not be refreshed. Use Refresh my groups.", "error");
+    } else {
+      setEntryMessage(entryInviteMessage, error.message || "Could not join this group. Ask the owner for a fresh invite.", "error");
+    }
+    entryAcceptInvite.disabled = false;
+  }
+});
+entryJoinCodeForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!supabaseClient) {
+    setEntryMessage(entryJoinCodeMessage, "Could not connect to your account. Reload and try again.", "error");
+    return;
+  }
+  const inviteCode = parseInviteCode(entryJoinCodeInput.value);
+  if (!inviteCode) {
+    setEntryMessage(entryJoinCodeMessage, "Enter a valid invite code or paste the full invite link.", "error");
+    return;
+  }
+  pendingInviteToken = inviteCode;
+  try {
+    sessionStorage.setItem(pendingInviteStorageKey, pendingInviteToken);
+  } catch (error) {
+    console.warn("Could not persist the typed group invite in this tab.", error);
+  }
+  entryJoinCodeSubmit.disabled = true;
+  setEntryMessage(entryJoinCodeMessage, "Checking the invite code…");
+  try {
+    await showPendingInvite(++entryRequestId);
+    if (pendingInviteToken) {
+      setEntryMessage(entryJoinCodeMessage, "");
+    } else {
+      setEntryMessage(entryJoinCodeMessage, "That code is invalid or has been replaced. Ask the group owner for a fresh code.", "error");
+    }
+  } finally {
+    entryJoinCodeSubmit.disabled = false;
+  }
+});
+document.querySelector("#entry-dismiss-invite").addEventListener("click", () => {
+  clearPendingInvite();
+  entryJoinCodeInput.value = "";
+  entryInviteCard.hidden = true;
+  entryInviteAuthNote.hidden = true;
 });
 document.querySelector("[data-close-account]").addEventListener("click", () => accountDialog.close());
 accountDialog.addEventListener("click", (event) => {
